@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Boletos 1-300 | Monitoreo en Vivo</title>
+    <title>Control de Venta de Boletos 1-300</title>
     <style>
         :root {
-            --bg: #0b0f12;
-            --panel-bg: #13181f;
-            --border: #2a323c;
+            --bg: #0b0f14;
+            --panel-bg: #131920;
+            --border: #2a323d;
             --text: #e6edf3;
             --text-secondary: #8b949e;
             --green-bright: #3fb950;
             --green-bg: #1a3a1f;
             --green-border: #2ea043;
-            --gray-bg: #1c1c1f;
-            --gray-border: #3a3a3d;
+            --green-hover: #26b641;
+            --gray-bg: #1c1c20;
+            --gray-border: #3a3a3e;
+            --gray-hover: #2a2a30;
+            --accent: #58a6ff;
             --card-radius: 8px;
-            --transition-speed: 0.4s;
+            --transition: 0.25s ease;
         }
 
         * {
@@ -25,10 +28,9 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            background-color: var(--bg);
-            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
             color: var(--text);
             min-height: 100vh;
             display: flex;
@@ -36,213 +38,178 @@
             align-items: center;
             padding: 16px;
             background-image:
-                radial-gradient(ellipse at 20% 30%, rgba(63, 185, 80, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 30%, rgba(63, 185, 80, 0.04) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 70%, rgba(63, 185, 80, 0.03) 0%, transparent 50%);
         }
-
         .dashboard {
             width: 100%;
             max-width: 1300px;
             background: var(--panel-bg);
             border-radius: 20px;
             border: 1px solid var(--border);
-            padding: 22px 24px 28px;
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.6),
-                0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+            padding: 20px 24px 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
         }
-
-        /* ========= HEADER ========= */
-        .dashboard-header {
+        /* Header */
+        .header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-        .header-left {
-            display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
         }
         .header-left h1 {
             font-size: 1.5rem;
             font-weight: 700;
             letter-spacing: -0.3px;
         }
-        .live-indicator {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: rgba(63, 185, 80, 0.12);
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(63, 185, 80, 0.3);
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            color: var(--green-bright);
-            text-transform: uppercase;
-        }
-        .pulse-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: var(--green-bright);
-            animation: pulse 1.2s ease-in-out infinite;
-            box-shadow: 0 0 8px rgba(63, 185, 80, 0.7);
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.3;
-                transform: scale(1.8);
-            }
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-        }
-        .update-counter {
+        .total-badge {
             background: #1a1f27;
-            padding: 5px 11px;
-            border-radius: 8px;
             border: 1px solid var(--border);
-            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 0.8rem;
-            color: #c9d1d9;
-            min-width: 55px;
-            text-align: center;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .total-badge .count {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--green-bright);
+            font-variant-numeric: tabular-nums;
         }
         .timestamp {
-            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 0.78rem;
-            color: #8b949e;
-        }
-
-        /* ========= LEYENDA ========= */
-        .legend {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
+            font-family: 'SF Mono', 'Consolas', monospace;
             font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-        .legend-swatch {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 2px solid transparent;
-            flex-shrink: 0;
-        }
-        .legend-swatch.green {
-            background: var(--green-bg);
-            border-color: var(--green-border);
-        }
-        .legend-swatch.gray {
-            background: var(--gray-bg);
-            border-color: var(--gray-border);
+            color: #7d8590;
         }
 
-        /* ========= CONTROLES ========= */
-        .controls-bar {
+        /* Controles */
+        .controls {
             display: flex;
-            gap: 10px;
-            margin-bottom: 18px;
             flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
             align-items: center;
         }
         .btn {
-            background: #1c2128;
+            background: #1c2129;
             border: 1px solid var(--border);
             color: #c9d1d9;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.82rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            user-select: none;
         }
         .btn:hover {
-            background: #242b33;
+            background: #242b35;
             border-color: #4a5568;
-            color: #ffffff;
+            color: #fff;
+            transform: translateY(-1px);
         }
         .btn:active {
             transform: scale(0.97);
         }
-        .stats-mini {
+        .btn.accent {
+            background: #1a3a2a;
+            border-color: #2ea043;
+            color: #9fddb0;
+        }
+        .btn.accent:hover {
+            background: #1f4a2f;
+            border-color: #3fb950;
+            color: #fff;
+        }
+        .btn.danger {
+            background: #2d1a1a;
+            border-color: #5a2e2e;
+            color: #f0a0a0;
+        }
+        .btn.danger:hover {
+            background: #3d2020;
+            border-color: #7a3a3a;
+            color: #fff;
+        }
+        .separator {
+            width: 1px;
+            height: 24px;
+            background: #2d333b;
+            margin: 0 6px;
+        }
+        .legend {
+            display: flex;
+            gap: 16px;
             font-size: 0.78rem;
             color: #8b949e;
-            margin-left: 5px;
-            background: #161b22;
-            padding: 5px 10px;
-            border-radius: 6px;
-            border: 1px solid #2a323c;
+            align-items: center;
+            margin-left: auto;
         }
-        .stats-mini strong {
-            color: #e6edf3;
-            font-weight: 600;
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            border: 1px solid transparent;
+        }
+        .legend-dot.green {
+            background: var(--green-bg);
+            border-color: var(--green-border);
+        }
+        .legend-dot.gray {
+            background: var(--gray-bg);
+            border-color: var(--gray-border);
         }
 
-        /* ========= GRID DE BOLETOS ========= */
+        /* Grid */
         .ticket-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            gap: 8px;
-            max-height: 65vh;
+            grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+            gap: 7px;
+            max-height: 60vh;
             overflow-y: auto;
             padding-right: 4px;
-            margin-top: 4px;
         }
-        /* Scroll personalizado */
         .ticket-grid::-webkit-scrollbar {
-            width: 8px;
+            width: 7px;
         }
         .ticket-grid::-webkit-scrollbar-track {
             background: #0f1319;
             border-radius: 10px;
         }
         .ticket-grid::-webkit-scrollbar-thumb {
-            background: #2d333b;
+            background: #2a3039;
             border-radius: 10px;
-            border: 1px solid #3a3f47;
         }
 
         .ticket-cell {
             background: var(--gray-bg);
             border: 2px solid var(--gray-border);
             border-radius: var(--card-radius);
-            padding: 6px 4px;
+            padding: 8px 4px;
             text-align: center;
-            cursor: default;
+            cursor: pointer;
             transition:
-                background var(--transition-speed) ease,
-                border-color var(--transition-speed) ease,
-                box-shadow var(--transition-speed) ease,
-                transform 0.25s ease;
+                background var(--transition),
+                border-color var(--transition),
+                box-shadow var(--transition),
+                transform 0.2s;
             position: relative;
             overflow: hidden;
-            min-height: 48px;
+            min-height: 50px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -251,89 +218,76 @@
             user-select: none;
             font-weight: 600;
             font-size: 0.8rem;
+            color: #6e7681;
         }
-
-        .ticket-cell::before {
+        .ticket-cell::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
             border-radius: var(--card-radius);
             opacity: 0;
-            transition: opacity 0.45s ease;
+            transition: opacity 0.3s;
             pointer-events: none;
-            z-index: 0;
         }
-
-        /* Verde = con datos */
-        .ticket-cell.active {
+        .ticket-cell.sold {
             background: var(--green-bg);
             border-color: var(--green-border);
-            box-shadow: 0 2px 10px rgba(63, 185, 80, 0.25), 0 0 0 1px rgba(63, 185, 80, 0.08) inset;
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
             animation: subtleGlow 3s ease-in-out infinite;
-            color: #ffffff;
         }
-        .ticket-cell.active::before {
-            background: radial-gradient(ellipse at center, rgba(63, 185, 80, 0.2) 0%, transparent 70%);
+        .ticket-cell.sold::after {
+            background: radial-gradient(ellipse at center, rgba(63, 185, 80, 0.18) 0%, transparent 70%);
             opacity: 1;
         }
         @keyframes subtleGlow {
             0%,
             100% {
-                box-shadow: 0 2px 10px rgba(63, 185, 80, 0.25), 0 0 0 1px rgba(63, 185, 80, 0.08) inset;
+                box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
             }
             50% {
-                box-shadow: 0 4px 18px rgba(63, 185, 80, 0.45), 0 0 0 1px rgba(63, 185, 80, 0.18) inset;
+                box-shadow: 0 4px 20px rgba(63, 185, 80, 0.55);
             }
         }
-
-        /* Gris = vacío */
-        .ticket-cell.inactive {
-            background: #1b1b1e;
-            border-color: #3a3a3e;
-            box-shadow: none;
-            animation: none;
-            color: #5a5a62;
-        }
-        .ticket-cell.inactive::before {
-            opacity: 0;
-        }
-
         .ticket-cell:hover {
             transform: translateY(-2px);
             z-index: 2;
         }
-        .ticket-cell.active:hover {
-            box-shadow: 0 8px 22px rgba(63, 185, 80, 0.5), 0 0 0 1px rgba(63, 185, 80, 0.25) inset;
+        .ticket-cell.sold:hover {
+            border-color: #4dda5a;
+            box-shadow: 0 6px 24px rgba(63, 185, 80, 0.6);
         }
-
+        .ticket-cell.available:hover {
+            border-color: #5a5a62;
+            background: #25252b;
+            color: #aaa;
+        }
         .ticket-number {
             font-size: 0.8rem;
             font-weight: 700;
             z-index: 1;
-            line-height: 1;
         }
-        .ticket-data {
+        .ticket-status {
             font-size: 0.55rem;
             z-index: 1;
             font-weight: 500;
             letter-spacing: 0.2px;
-            opacity: 0.9;
         }
-        .ticket-cell.inactive .ticket-data {
-            color: #4a4a52;
+        .ticket-cell.sold .ticket-status {
+            color: #b8e6c0;
+        }
+        .ticket-cell.available .ticket-status {
+            color: #555;
         }
 
-        /* Destello de actualización */
-        .ticket-cell.flash-update {
-            animation: flashGreen 0.65s ease-out;
+        /* Destello al vender */
+        .ticket-cell.flash {
+            animation: flashGreen 0.6s ease-out;
         }
         @keyframes flashGreen {
             0% {
-                filter: brightness(2.4);
-                box-shadow: 0 0 35px rgba(63, 185, 80, 0.9);
+                filter: brightness(2.5);
+                box-shadow: 0 0 30px rgba(63, 185, 80, 0.9);
             }
             100% {
                 filter: brightness(1);
@@ -342,310 +296,243 @@
 
         @media (max-width: 768px) {
             .ticket-grid {
-                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
                 gap: 5px;
             }
             .ticket-cell {
                 min-height: 40px;
-                padding: 4px 2px;
+                padding: 5px 2px;
                 font-size: 0.7rem;
             }
-            .ticket-number {
-                font-size: 0.7rem;
+            .btn {
+                padding: 6px 10px;
+                font-size: 0.72rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="dashboard">
-        <!-- HEADER -->
-        <div class="dashboard-header">
+        <!-- Header -->
+        <div class="header">
             <div class="header-left">
-                <h1>🎟️ Boletos 1-300</h1>
-                <div class="live-indicator">
-                    <span class="pulse-dot"></span> EN VIVO
-                </div>
+                <h1>🎟️ Control de Boletos 1-300</h1>
             </div>
-            <div class="header-right">
-                <span>Actualizaciones:</span>
-                <span class="update-counter" id="updateCounter">0</span>
-                <span class="timestamp" id="liveTimestamp">--:--:--</span>
+            <div class="total-badge">
+                <span>🎯 Vendidos:</span>
+                <span class="count" id="soldCount">0</span>
+                <span>/ 300</span>
             </div>
+            <div class="timestamp" id="liveTimestamp">--:--:--</div>
         </div>
 
-        <!-- LEYENDA + ESTADÍSTICAS -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+        <!-- Controles -->
+        <div class="controls">
+            <button class="btn accent" id="btnSell200">🎫 Vender primeros 200</button>
+            <button class="btn accent" id="btnSell250">🎫 Vender primeros 250</button>
+            <div class="separator"></div>
+            <button class="btn" id="btnSellRandom">🎲 Vender 200 aleatorios</button>
+            <button class="btn danger" id="btnResetAll">🧹 Reiniciar todos</button>
             <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-swatch green"></div>
-                    <span>Con datos (verde)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-swatch gray"></div>
-                    <span>Vacío / sin dato (gris)</span>
-                </div>
-            </div>
-            <div class="stats-mini">
-                🟢 <strong id="activeCount">0</strong> activos &nbsp;|&nbsp; ⚫ <strong id="inactiveCount">300</strong> vacíos
+                <span><span class="legend-dot green"></span> Vendido</span>
+                <span><span class="legend-dot gray"></span> Disponible</span>
             </div>
         </div>
 
-        <!-- CONTROLES RÁPIDOS -->
-        <div class="controls-bar">
-            <button class="btn" id="btnRandomize"><span>🎲</span> Aleatorizar datos</button>
-            <button class="btn" id="btnFillAll"><span>✅</span> Llenar todos</button>
-            <button class="btn" id="btnClearAll"><span>🧹</span> Vaciar todos</button>
-            <span style="font-size:0.7rem; color:#6e7681; margin-left:6px;">Simulación cada 2.5s</span>
-        </div>
-
-        <!-- GRID DE BOLETOS -->
-        <div class="ticket-grid" id="ticketGrid">
-            <!-- generado dinámicamente -->
-        </div>
+        <!-- Grid -->
+        <div class="ticket-grid" id="ticketGrid"></div>
     </div>
 
     <script>
         (function() {
-            // ============ CONFIGURACIÓN ============
-            const TOTAL_TICKETS = 300;
-            const UPDATE_INTERVAL_MS = 2500; // 2.5 segundos
-            const PROBABILITY_HAS_DATA = 0.6; // 60% de probabilidad de que un boleto tenga dato en cada ciclo
+            const TOTAL = 300;
+            const STORAGE_KEY = 'ticketSales300';
 
-            // Estado de cada boleto (1 a 300)
-            const ticketStates = {};
-            for (let i = 1; i <= TOTAL_TICKETS; i++) {
-                ticketStates[i] = {
-                    value: null, // null = vacío, cualquier string/number = con dato
-                    lastUpdate: null,
-                    previousValue: null,
+            // Estado: true = vendido, false = disponible
+            let soldStatus = new Array(TOTAL + 1).fill(false); // índice 1..300
+
+            const gridEl = document.getElementById('ticketGrid');
+            const soldCountEl = document.getElementById('soldCount');
+            const liveTimestampEl = document.getElementById('liveTimestamp');
+            const cellElements = {}; // { number: { container, statusEl } }
+
+            // ============ LOCAL STORAGE ============
+            function saveState() {
+                const data = {
+                    sold: soldStatus.slice(1), // guardar solo índices 1-300 como array
+                    lastUpdate: Date.now()
                 };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             }
 
-            let updateCount = 0;
-            const gridEl = document.getElementById('ticketGrid');
-            const updateCounterEl = document.getElementById('updateCounter');
-            const liveTimestampEl = document.getElementById('liveTimestamp');
-            const activeCountEl = document.getElementById('activeCount');
-            const inactiveCountEl = document.getElementById('inactiveCount');
+            function loadState() {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    try {
+                        const data = JSON.parse(raw);
+                        if (data.sold && Array.isArray(data.sold) && data.sold.length === TOTAL) {
+                            for (let i = 0; i < TOTAL; i++) {
+                                soldStatus[i + 1] = !!data.sold[i];
+                            }
+                            return true;
+                        }
+                    } catch (e) {}
+                }
+                // Estado inicial: primeros 50 vendidos como demo, o todos disponibles
+                for (let i = 1; i <= TOTAL; i++) soldStatus[i] = false;
+                return false;
+            }
 
-            // Referencias rápidas a cada celda
-            const cellElements = {}; // { ticketNumber: { container, dataEl } }
-
-            // ============ CONSTRUIR LA CUADRÍCULA DE 300 BOLETOS ============
+            // ============ CONSTRUIR GRID ============
             function buildGrid() {
                 gridEl.innerHTML = '';
-                for (let num = 1; num <= TOTAL_TICKETS; num++) {
+                for (let num = 1; num <= TOTAL; num++) {
                     const cell = document.createElement('div');
-                    cell.className = 'ticket-cell inactive';
+                    cell.className = 'ticket-cell available';
                     cell.setAttribute('data-ticket', num);
-                    cell.title = `Boleto #${num} — Sin datos`;
-
+                    cell.title = `Boleto #${num} — Disponible`;
                     cell.innerHTML = `
                             <span class="ticket-number">#${num}</span>
-                            <span class="ticket-data" data-role="data">—</span>
+                            <span class="ticket-status" data-role="status">Disp.</span>
                         `;
-
+                    cell.addEventListener('click', () => toggleTicket(num));
                     gridEl.appendChild(cell);
-
                     cellElements[num] = {
                         container: cell,
-                        dataEl: cell.querySelector('[data-role="data"]'),
+                        statusEl: cell.querySelector('[data-role="status"]'),
                     };
                 }
             }
 
-            // ============ GENERAR DATO ALEATORIO PARA UN BOLETO ============
-            function generateRandomTicketData(ticketNumber) {
-                // Simula distintos tipos de datos: precio, código, estado, etc.
-                const types = ['precio', 'codigo', 'estado'];
-                const type = types[Math.floor(Math.random() * types.length)];
-                if (type === 'precio') {
-                    const price = (Math.random() * 150 + 5).toFixed(2);
-                    return `$${price}`;
-                } else if (type === 'codigo') {
-                    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-                    const code = Array.from({ length: 3 }, () => letters[Math.floor(Math.random() * letters
-                        .length)]).join('');
-                    return `C-${code}`;
+            // ============ ACTUALIZAR UNA CELDA ============
+            function updateCell(num, flash = false) {
+                const { container, statusEl } = cellElements[num];
+                const isSold = soldStatus[num];
+                if (isSold) {
+                    container.classList.add('sold');
+                    container.classList.remove('available');
+                    statusEl.textContent = 'Vendido';
+                    container.title = `Boleto #${num} — Vendido`;
                 } else {
-                    const estados = ['Activo', 'Reservado', 'Pagado', 'Enviado'];
-                    return estados[Math.floor(Math.random() * estados.length)];
+                    container.classList.remove('sold');
+                    container.classList.add('available');
+                    statusEl.textContent = 'Disp.';
+                    container.title = `Boleto #${num} — Disponible`;
+                }
+                if (flash) {
+                    container.classList.remove('flash');
+                    void container.offsetWidth;
+                    container.classList.add('flash');
+                    setTimeout(() => container.classList.remove('flash'), 650);
                 }
             }
 
-            // ============ ACTUALIZAR TODOS LOS BOLETOS (CICLO AUTOMÁTICO) ============
-            function updateAllTickets() {
-                const now = new Date();
-                updateCount++;
-                updateCounterEl.textContent = updateCount;
-                liveTimestampEl.textContent = now.toLocaleTimeString('es-ES', { hour12: false });
+            function refreshAllCells() {
+                for (let num = 1; num <= TOTAL; num++) {
+                    updateCell(num, false);
+                }
+            }
 
-                let activeTally = 0;
-                let inactiveTally = 0;
+            function updateSoldCounter() {
+                const count = soldStatus.filter(Boolean).length;
+                soldCountEl.textContent = count;
+            }
 
-                for (let num = 1; num <= TOTAL_TICKETS; num++) {
-                    const state = ticketStates[num];
-                    const hasData = Math.random() < PROBABILITY_HAS_DATA;
+            // ============ TOGGLE INDIVIDUAL ============
+            function toggleTicket(num) {
+                soldStatus[num] = !soldStatus[num];
+                updateCell(num, true);
+                updateSoldCounter();
+                saveState();
+                updateTimestamp();
+            }
 
-                    let newValue = null;
-                    if (hasData) {
-                        newValue = generateRandomTicketData(num);
+            // ============ ACCIONES MASIVAS ============
+            function sellFirstN(n) {
+                for (let i = 1; i <= n; i++) {
+                    if (!soldStatus[i]) {
+                        soldStatus[i] = true;
+                        updateCell(i, true);
                     }
-
-                    const previousValue = state.value;
-                    state.previousValue = previousValue;
-                    state.value = newValue;
-                    state.lastUpdate = hasData ? now.getTime() : state.lastUpdate;
-
-                    // Actualizar DOM de la celda
-                    updateCellDOM(num, state, newValue, previousValue);
-
-                    if (newValue !== null) activeTally++;
-                    else inactiveTally++;
                 }
-
-                // Actualizar contadores visuales
-                activeCountEl.textContent = activeTally;
-                inactiveCountEl.textContent = inactiveTally;
+                // También podemos asegurar que los demás no cambien
+                updateSoldCounter();
+                saveState();
+                updateTimestamp();
             }
 
-            function updateCellDOM(ticketNumber, state, newValue, previousValue) {
-                const elements = cellElements[ticketNumber];
-                if (!elements) return;
-
-                const { container, dataEl } = elements;
-                const hasData = newValue !== null;
-                const wasActive = container.classList.contains('active');
-                const isNowActive = hasData;
-
-                // Cambio de clase
-                if (isNowActive && !wasActive) {
-                    container.classList.remove('inactive');
-                    container.classList.add('active');
-                } else if (!isNowActive && wasActive) {
-                    container.classList.remove('active');
-                    container.classList.add('inactive');
+            function sellRandomN(n) {
+                // Seleccionar n boletos aleatorios (sin repetir) y venderlos
+                const allIndices = [];
+                for (let i = 1; i <= TOTAL; i++) {
+                    if (!soldStatus[i]) allIndices.push(i);
                 }
-
-                // Destello si cambió el valor (y tiene dato)
-                if (isNowActive && previousValue !== null && newValue !== previousValue) {
-                    triggerFlash(container);
+                // Mezclar
+                for (let i = allIndices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
                 }
-                if (isNowActive && previousValue === null) {
-                    triggerFlash(container);
+                const toSell = allIndices.slice(0, Math.min(n, allIndices.length));
+                for (const num of toSell) {
+                    soldStatus[num] = true;
+                    updateCell(num, true);
                 }
-
-                // Texto del dato
-                if (hasData) {
-                    dataEl.textContent = newValue;
-                    container.title =
-                        `Boleto #${ticketNumber} — ${newValue} (actualizado: ${new Date(state.lastUpdate).toLocaleTimeString('es-ES', { hour12: false })})`;
-                } else {
-                    dataEl.textContent = '—';
-                    container.title = `Boleto #${ticketNumber} — Sin datos`;
-                }
+                updateSoldCounter();
+                saveState();
+                updateTimestamp();
             }
 
-            function triggerFlash(container) {
-                container.classList.remove('flash-update');
-                void container.offsetWidth;
-                container.classList.add('flash-update');
-                setTimeout(() => {
-                    container.classList.remove('flash-update');
-                }, 700);
+            function resetAll() {
+                for (let i = 1; i <= TOTAL; i++) {
+                    if (soldStatus[i]) {
+                        soldStatus[i] = false;
+                        updateCell(i, true);
+                    }
+                }
+                updateSoldCounter();
+                saveState();
+                updateTimestamp();
             }
 
-            // ============ ACTUALIZAR CONTADORES GENERALES ============
-            function recalcCounters() {
-                let active = 0;
-                for (let num = 1; num <= TOTAL_TICKETS; num++) {
-                    if (ticketStates[num].value !== null) active++;
-                }
-                activeCountEl.textContent = active;
-                inactiveCountEl.textContent = TOTAL_TICKETS - active;
-            }
-
-            // ============ ACCIONES MANUALES ============
-            function randomizeAll() {
-                const now = Date.now();
-                for (let num = 1; num <= TOTAL_TICKETS; num++) {
-                    const hasData = Math.random() < 0.55;
-                    const state = ticketStates[num];
-                    const prev = state.value;
-                    state.previousValue = prev;
-                    state.value = hasData ? generateRandomTicketData(num) : null;
-                    state.lastUpdate = hasData ? now : state.lastUpdate;
-                    updateCellDOM(num, state, state.value, prev);
-                }
-                recalcCounters();
-                updateCount++;
-                updateCounterEl.textContent = updateCount;
+            function updateTimestamp() {
                 liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
             }
 
-            function fillAll() {
-                const now = Date.now();
-                for (let num = 1; num <= TOTAL_TICKETS; num++) {
-                    const state = ticketStates[num];
-                    const prev = state.value;
-                    state.previousValue = prev;
-                    state.value = generateRandomTicketData(num);
-                    state.lastUpdate = now;
-                    updateCellDOM(num, state, state.value, prev);
-                }
-                recalcCounters();
-                updateCount++;
-                updateCounterEl.textContent = updateCount;
-                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
-            }
-
-            function clearAll() {
-                for (let num = 1; num <= TOTAL_TICKETS; num++) {
-                    const state = ticketStates[num];
-                    const prev = state.value;
-                    state.previousValue = prev;
-                    state.value = null;
-                    state.lastUpdate = null;
-                    updateCellDOM(num, state, null, prev);
-                }
-                recalcCounters();
-                updateCount++;
-                updateCounterEl.textContent = updateCount;
-                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
-            }
-
-            // ============ INICIALIZACIÓN ============
-            function initialize() {
+            // ============ INICIALIZAR ============
+            function init() {
+                const loaded = loadState();
                 buildGrid();
-
-                // Estado inicial: algunos boletos con datos (~40%)
-                const now = Date.now();
-                for (let num = 1; num <= TOTAL_TICKETS; num++) {
-                    const hasData = Math.random() < 0.4;
-                    const state = ticketStates[num];
-                    state.value = hasData ? generateRandomTicketData(num) : null;
-                    state.lastUpdate = hasData ? now : null;
-                    state.previousValue = null;
-                    updateCellDOM(num, state, state.value, null);
+                refreshAllCells();
+                updateSoldCounter();
+                updateTimestamp();
+                if (!loaded) {
+                    // Estado inicial: vender primeros 50 como ejemplo
+                    for (let i = 1; i <= 50; i++) {
+                        soldStatus[i] = true;
+                        updateCell(i, false);
+                    }
+                    updateSoldCounter();
+                    saveState();
                 }
-                recalcCounters();
-                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
-                updateCounterEl.textContent = '0';
+                // Actualizar timestamp periódicamente
+                setInterval(updateTimestamp, 1000);
             }
 
             // ============ EVENTOS ============
-            document.getElementById('btnRandomize').addEventListener('click', randomizeAll);
-            document.getElementById('btnFillAll').addEventListener('click', fillAll);
-            document.getElementById('btnClearAll').addEventListener('click', clearAll);
+            document.getElementById('btnSell200').addEventListener('click', () => sellFirstN(200));
+            document.getElementById('btnSell250').addEventListener('click', () => sellFirstN(250));
+            document.getElementById('btnSellRandom').addEventListener('click', () => sellRandomN(200));
+            document.getElementById('btnResetAll').addEventListener('click', () => {
+                if (confirm('¿Estás seguro de reiniciar todos los boletos a "Disponible"?')) {
+                    resetAll();
+                }
+            });
 
-            // ============ ARRANQUE ============
-            initialize();
-
-            const intervalId = setInterval(updateAllTickets, UPDATE_INTERVAL_MS);
-
-            console.log('✅ Panel de 300 boletos activo.');
-            console.log('   🟢 Verde = con dato  |  ⚫ Gris = vacío');
-            console.log(`   🔄 Ciclo automático cada ${UPDATE_INTERVAL_MS / 1000}s`);
+            // ============ ARRANCAR ============
+            init();
+            console.log('✅ Panel de control de boletos 1-300 listo.');
+            console.log('   🟢 Verde = Vendido  |  ⚫ Gris = Disponible');
+            console.log('   💾 Los cambios se guardan automáticamente.');
         })();
     </script>
 </body>
