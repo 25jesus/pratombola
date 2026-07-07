@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Venta de Boletos 1-300 | Supabase</title>
-    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -213,15 +212,14 @@
     <script>
         (function() {
             // ══════════════════════════════════════
-            // CONFIGURACIÓN DE SUPABASE
+            // CONFIGURACIÓN DE TU PROYECTO SUPABASE
             // ══════════════════════════════════════
-            const SUPABASE_URL = "https://tu-proyecto.supabase.co";  // ← cambia esto
-            const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // ← cambia esto
+            const SUPABASE_URL = "https://zavonkfpunwwqjliojtb.supabase.co";
+            const SUPABASE_ANON_KEY = "sb_publishable_MEkptp0YhHcsTLDPoIl0Nw_s3kMyYo9";
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             const TOTAL = 300;
-            // Estado local: array indexado de 1 a 300
             let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
             let currentModalTicket = null;
@@ -242,7 +240,7 @@
             const confirmSellBtn = document.getElementById('confirmSell');
 
             // ══════════════════════════════════════
-            // INICIALIZACIÓN DE LA BASE DE DATOS
+            // CARGA INICIAL DESDE SUPABASE
             // ══════════════════════════════════════
             async function cargarEstadoInicial() {
                 const { data, error } = await supabase
@@ -252,6 +250,7 @@
 
                 if (error) {
                     console.error('Error al cargar los boletos:', error);
+                    alert('Error conectando con la base de datos. Verifica que la tabla "tickets" existe y tiene los 300 registros.');
                     return;
                 }
 
@@ -264,6 +263,8 @@
                             price: row.price || 0
                         };
                     }
+                } else {
+                    console.warn('La tabla no tiene exactamente 300 registros. Asegúrate de haber ejecutado el SQL inicial.');
                 }
                 refrescarTodasLasCeldas();
                 actualizarTotales();
@@ -279,7 +280,6 @@
                         'postgres_changes',
                         { event: '*', schema: 'public', table: 'tickets' },
                         (payload) => {
-                            // payload.new contiene la fila modificada
                             if (payload.new && payload.new.id) {
                                 const id = payload.new.id;
                                 tickets[id] = {
@@ -296,7 +296,7 @@
             }
 
             // ══════════════════════════════════════
-            // INTERFAZ DE USUARIO (CELDAS)
+            // INTERFAZ DE USUARIO
             // ══════════════════════════════════════
             function construirGrid() {
                 gridEl.innerHTML = '';
@@ -350,7 +350,7 @@
             }
 
             // ══════════════════════════════════════
-            // VENTAS
+            // LÓGICA DE VENTAS
             // ══════════════════════════════════════
             function abrirModalVenta(ticketNumbers, isBlock = false) {
                 if (Array.isArray(ticketNumbers)) {
@@ -405,7 +405,7 @@
                     }
                 }
 
-                // Actualizar en Supabase (upsert)
+                // Actualizar en Supabase
                 const updates = ids.map(id => ({
                     id: id,
                     sold: true,
@@ -455,7 +455,6 @@
                     alert('Todos los boletos están vendidos.');
                     return;
                 }
-                // Mezclar
                 for (let i = disponibles.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [disponibles[i], disponibles[j]] = [disponibles[j], disponibles[i]];
@@ -467,7 +466,6 @@
             async function reiniciarTodo() {
                 if (!confirm('¿Seguro que quieres reiniciar todas las ventas?')) return;
 
-                // Poner todos como no vendidos
                 const updates = [];
                 for (let i = 1; i <= TOTAL; i++) {
                     updates.push({
