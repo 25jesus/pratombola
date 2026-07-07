@@ -2,80 +2,529 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Diagnóstico de conexión Supabase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Venta de Boletos 1-300 | Supabase</title>
+    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #0b0f14; color: #e6edf3; padding: 20px; }
-        .log { background: #161b22; padding: 15px; border-radius: 10px; margin: 10px 0; border: 1px solid #30363d; }
-        .ok { color: #3fb950; } .err { color: #f85149; } .info { color: #58a6ff; }
-        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        /* (estilos iguales, no los cambio) */
+        :root {
+            --bg: #0b0f14;
+            --panel-bg: #131920;
+            --border: #2a323d;
+            --text: #e6edf3;
+            --text-secondary: #8b949e;
+            --green-bright: #3fb950;
+            --green-bg: #1a3a1f;
+            --green-border: #2ea043;
+            --gray-bg: #1c1c20;
+            --gray-border: #3a3a3e;
+            --accent: #58a6ff;
+            --danger: #f85149;
+            --card-radius: 8px;
+            --transition: 0.2s ease;
+            --modal-bg: #1c2128;
+            --modal-overlay: rgba(0,0,0,0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            background-image:
+                radial-gradient(ellipse at 20% 30%, rgba(63, 185, 80, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(63, 185, 80, 0.03) 0%, transparent 50%);
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1300px;
+            background: var(--panel-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 20px 24px 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; }
+        .stats { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; font-size: 0.9rem; }
+        .stat-item { background: #1a1f27; border: 1px solid var(--border); border-radius: 12px; padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
+        .stat-item .label { color: #8b949e; font-size: 0.8rem; }
+        .stat-item .value { font-size: 1.3rem; font-weight: 700; color: var(--green-bright); font-variant-numeric: tabular-nums; }
+        .timestamp { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; color: #7d8590; margin-left: auto; }
+
+        .controls {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center;
+        }
+        .btn {
+            background: #1c2129; border: 1px solid var(--border); color: #c9d1d9;
+            padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; user-select: none;
+        }
+        .btn:hover { background: #242b35; border-color: #4a5568; color: #fff; transform: translateY(-1px); }
+        .btn:active { transform: scale(0.97); }
+        .btn.accent { background: #1a3a2a; border-color: #2ea043; color: #9fddb0; }
+        .btn.accent:hover { background: #1f4a2f; border-color: #3fb950; color: #fff; }
+        .btn.danger { background: #2d1a1a; border-color: #5a2e2e; color: #f0a0a0; }
+        .btn.danger:hover { background: #3d2020; border-color: #7a3a3a; color: #fff; }
+        .separator { width: 1px; height: 24px; background: #2d333b; margin: 0 6px; }
+        .legend { display: flex; gap: 16px; font-size: 0.78rem; color: #8b949e; align-items: center; margin-left: auto; }
+        .legend span { display: flex; align-items: center; gap: 5px; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid transparent; }
+        .legend-dot.green { background: var(--green-bg); border-color: var(--green-border); }
+        .legend-dot.gray { background: var(--gray-bg); border-color: var(--gray-border); }
+
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+            gap: 7px;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .ticket-grid::-webkit-scrollbar { width: 7px; }
+        .ticket-grid::-webkit-scrollbar-track { background: #0f1319; border-radius: 10px; }
+        .ticket-grid::-webkit-scrollbar-thumb { background: #2a3039; border-radius: 10px; }
+
+        .ticket-cell {
+            background: var(--gray-bg); border: 2px solid var(--gray-border); border-radius: var(--card-radius);
+            padding: 8px 4px; text-align: center; cursor: pointer;
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.2s;
+            position: relative; overflow: hidden; min-height: 50px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+            user-select: none; font-weight: 600; font-size: 0.8rem; color: #6e7681;
+        }
+        .ticket-cell.sold {
+            background: var(--green-bg); border-color: var(--green-border); color: #fff;
+            box-shadow: 0 2px 10px rgba(63,185,80,0.3); animation: subtleGlow 3s ease-in-out infinite;
+        }
+        @keyframes subtleGlow {
+            0%,100%{ box-shadow: 0 2px 10px rgba(63,185,80,0.3); }
+            50%{ box-shadow: 0 4px 20px rgba(63,185,80,0.55); }
+        }
+        .ticket-cell:hover { transform: translateY(-2px); z-index: 2; }
+        .ticket-cell.sold:hover { border-color: #4dda5a; box-shadow: 0 6px 24px rgba(63,185,80,0.6); }
+        .ticket-cell.available:hover { border-color: #5a5a62; background: #25252b; color: #aaa; }
+        .ticket-number { font-size: 0.8rem; font-weight: 700; z-index: 1; }
+        .ticket-status { font-size: 0.55rem; z-index: 1; font-weight: 500; letter-spacing: 0.2px; }
+        .ticket-cell.sold .ticket-status { color: #b8e6c0; }
+        .ticket-cell.available .ticket-status { color: #555; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay); display: flex; justify-content: center; align-items: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: opacity 0.25s ease, visibility 0.25s;
+        }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal {
+            background: var(--modal-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 24px; width: 90%; max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: var(--text);
+        }
+        .modal h3 { margin-bottom: 16px; font-size: 1.2rem; }
+        .modal label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #8b949e; }
+        .modal select {
+            width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid var(--border);
+            border-radius: 8px; color: #e6edf3; font-size: 0.9rem; margin-bottom: 14px; outline: none;
+        }
+        .price-options { display: flex; gap: 12px; margin-bottom: 20px; }
+        .price-option {
+            flex: 1; text-align: center; background: #1c2129; border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s; font-weight: 600;
+        }
+        .price-option.selected { background: #1a3a2a; border-color: #3fb950; color: #fff; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-actions .btn { min-width: 80px; justify-content: center; }
+
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%;
+            transform: translateX(-50%); background: #1c2129; border: 1px solid var(--border);
+            padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap;
+            pointer-events: none; z-index: 3; color: #c9d1d9; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
-    <h1>🔍 Diagnóstico Supabase</h1>
-    <div class="log" id="log"></div>
-    <button onclick="probarConexion()">🔄 Probar conexión</button>
-    <button onclick="intentarCrearTabla()">🛠️ Intentar crear tabla (SQL)</button>
-    <p class="info">Abre la consola del navegador (F12) para más detalles.</p>
+    <div class="dashboard">
+        <div class="header">
+            <div class="header-left"><h1>🎟️ Control de Boletos 1-300</h1></div>
+            <div class="stats">
+                <div class="stat-item"><span class="label">🎯 Vendidos</span><span class="value" id="soldCount">0</span></div>
+                <div class="stat-item"><span class="label">💰 Ganancia Total</span><span class="value" id="totalRevenue">$0</span></div>
+            </div>
+            <div class="timestamp" id="liveTimestamp">--:--:--</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn accent" id="btnSell200">🎫 Vender primeros 200</button>
+            <button class="btn accent" id="btnSell250">🎫 Vender primeros 250</button>
+            <div class="separator"></div>
+            <button class="btn" id="btnSellRandom">🎲 Vender 200 aleatorios</button>
+            <button class="btn danger" id="btnResetAll">🧹 Reiniciar todo</button>
+            <div class="legend">
+                <span><span class="legend-dot green"></span> Vendido</span>
+                <span><span class="legend-dot gray"></span> Disponible</span>
+            </div>
+        </div>
+
+        <div class="ticket-grid" id="ticketGrid"></div>
+    </div>
+
+    <!-- Modal de venta -->
+    <div class="modal-overlay" id="sellModal">
+        <div class="modal">
+            <h3>🎫 Vender Boleto <span id="modalTicketNumber">#0</span></h3>
+            <label for="sellerSelect">👤 Vendedor</label>
+            <select id="sellerSelect">
+                <option value="">-- Selecciona un vendedor --</option>
+                <option value="Carmen">Carmen</option>
+                <option value="Jesús">Jesús</option>
+                <option value="Leslie">Leslie</option>
+                <option value="Mamá">Mamá</option>
+            </select>
+            <label>💵 Precio de venta</label>
+            <div class="price-options" id="priceOptions">
+                <div class="price-option selected" data-price="200">$200</div>
+                <div class="price-option" data-price="250">$250</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelSell">Cancelar</button>
+                <button class="btn accent" id="confirmSell">✅ Confirmar venta</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const SUPABASE_URL = "https://zavonkfpunwwqjliojtb.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_MEkptp0YhHcsTLDPoIl0Nw_s3kMyYo9";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        (function() {
+            // ══════════════════════════════════════
+            // CONFIGURACIÓN DE SUPABASE (ACTUALIZADA)
+            // ══════════════════════════════════════
+            const SUPABASE_URL = "https://zavonkfpunwwqjliojtb.supabase.co";
+            const SUPABASE_ANON_KEY = "sb_publishable_MEkptp0YhHcsTLDPoIl0Nw_s3kMyYo9";
 
-        function log(msg, tipo = 'info') {
-            const div = document.getElementById('log');
-            const clase = tipo === 'ok' ? 'ok' : tipo === 'err' ? 'err' : 'info';
-            div.innerHTML += `<div class="${clase}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
-            div.scrollTop = div.scrollHeight;
-        }
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function probarConexion() {
-            document.getElementById('log').innerHTML = '';
-            log('🔵 Iniciando diagnóstico...', 'info');
+            const TOTAL = 300;
+            // Estado local: array indexado de 1 a 300
+            let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
-            // 1. Verificar que Supabase responde
-            log('Probando conexión básica...', 'info');
-            try {
-                const { data, error } = await supabase.from('tickets').select('id', { count: 'exact', head: true });
+            let currentModalTicket = null;
+            let currentModalBlock = null;
+            let selectedPrice = 200;
+
+            const gridEl = document.getElementById('ticketGrid');
+            const soldCountEl = document.getElementById('soldCount');
+            const totalRevenueEl = document.getElementById('totalRevenue');
+            const liveTimestampEl = document.getElementById('liveTimestamp');
+            const cellElements = {};
+
+            const modalOverlay = document.getElementById('sellModal');
+            const modalTicketNumber = document.getElementById('modalTicketNumber');
+            const sellerSelect = document.getElementById('sellerSelect');
+            const priceOptionsContainer = document.getElementById('priceOptions');
+            const cancelSellBtn = document.getElementById('cancelSell');
+            const confirmSellBtn = document.getElementById('confirmSell');
+
+            // ══════════════════════════════════════
+            // INICIALIZACIÓN DE LA BASE DE DATOS
+            // ══════════════════════════════════════
+            async function cargarEstadoInicial() {
+                const { data, error } = await supabase
+                    .from('tickets')
+                    .select('*')
+                    .order('id', { ascending: true });
+
                 if (error) {
-                    log(`❌ Error en consulta: ${error.message}`, 'err');
-                    if (error.code === '42P01') {
-                        log('❌ La tabla "tickets" NO existe en la base de datos.', 'err');
-                        log('💡 Solución: Ejecuta el SQL de creación de tabla en el SQL Editor de Supabase.', 'info');
-                    } else if (error.code === '42501') {
-                        log('❌ Error de permisos (política RLS).', 'err');
-                        log('💡 Solución: Ve a Authentication > Policies y añade políticas para la tabla tickets.', 'info');
-                    } else if (error.message.includes('fetch')) {
-                        log('❌ No se pudo conectar al servidor. Verifica la URL.', 'err');
-                    } else {
-                        log(`❌ Error desconocido: ${JSON.stringify(error)}`, 'err');
-                    }
-                } else {
-                    log('✅ Conexión exitosa. La tabla "tickets" existe.', 'ok');
-                    log(`📊 Registros en la tabla: ${data ? data.length : 'desconocido'}`, 'info');
+                    console.error('Error al cargar los boletos:', error);
+                    return;
                 }
-            } catch (e) {
-                log(`❌ Excepción: ${e.message}`, 'err');
-            }
-        }
 
-        function intentarCrearTabla() {
-            alert('Copia este SQL y pégalo en el SQL Editor de Supabase:\n\n' +
-                'CREATE TABLE IF NOT EXISTS tickets (\n' +
-                '  id INT PRIMARY KEY,\n' +
-                '  sold BOOLEAN DEFAULT FALSE,\n' +
-                '  seller TEXT DEFAULT \'\',\n' +
-                '  price INT DEFAULT 0,\n' +
-                '  fecha_venta TIMESTAMPTZ DEFAULT NULL\n' +
-                ');\n\n' +
-                'INSERT INTO tickets (id) SELECT generate_series(1, 300)\n' +
-                'ON CONFLICT (id) DO NOTHING;\n\n' +
-                '-- Luego habilita las políticas (o desactiva RLS para pruebas):\n' +
-                'ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;\n' +
-                'CREATE POLICY "Acceso público" ON tickets FOR ALL USING (true);'
-            );
-        }
+                if (data && data.length === TOTAL) {
+                    for (let i = 0; i < TOTAL; i++) {
+                        const row = data[i];
+                        tickets[row.id] = {
+                            sold: row.sold,
+                            seller: row.seller || '',
+                            price: row.price || 0
+                        };
+                    }
+                }
+                refrescarTodasLasCeldas();
+                actualizarTotales();
+            }
+
+            // ══════════════════════════════════════
+            // TIEMPO REAL: SUSCRIPCIÓN A CAMBIOS
+            // ══════════════════════════════════════
+            function suscribirCambiosEnVivo() {
+                supabase
+                    .channel('tickets-cambios')
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'tickets' },
+                        (payload) => {
+                            // payload.new contiene la fila modificada
+                            if (payload.new && payload.new.id) {
+                                const id = payload.new.id;
+                                tickets[id] = {
+                                    sold: payload.new.sold,
+                                    seller: payload.new.seller || '',
+                                    price: payload.new.price || 0
+                                };
+                                actualizarCelda(id);
+                                actualizarTotales();
+                            }
+                        }
+                    )
+                    .subscribe();
+            }
+
+            // ══════════════════════════════════════
+            // INTERFAZ DE USUARIO (CELDAS)
+            // ══════════════════════════════════════
+            function construirGrid() {
+                gridEl.innerHTML = '';
+                for (let num = 1; num <= TOTAL; num++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'ticket-cell available';
+                    cell.setAttribute('data-ticket', num);
+                    cell.innerHTML = `
+                        <span class="ticket-number">#${num}</span>
+                        <span class="ticket-status" data-role="status">Disp.</span>
+                    `;
+                    cell.addEventListener('click', () => manejarClickBoleto(num));
+                    gridEl.appendChild(cell);
+                    cellElements[num] = {
+                        container: cell,
+                        statusEl: cell.querySelector('[data-role="status"]')
+                    };
+                }
+            }
+
+            function actualizarCelda(num) {
+                const { container, statusEl } = cellElements[num];
+                const t = tickets[num];
+                if (t.sold) {
+                    container.classList.add('sold');
+                    container.classList.remove('available');
+                    statusEl.textContent = `$${t.price}`;
+                    container.setAttribute('data-tooltip', `${t.seller} — $${t.price}`);
+                } else {
+                    container.classList.remove('sold');
+                    container.classList.add('available');
+                    statusEl.textContent = 'Disp.';
+                    container.removeAttribute('data-tooltip');
+                }
+            }
+
+            function refrescarTodasLasCeldas() {
+                for (let num = 1; num <= TOTAL; num++) actualizarCelda(num);
+            }
+
+            function actualizarTotales() {
+                let vendidos = 0, ganancia = 0;
+                for (let i = 1; i <= TOTAL; i++) {
+                    if (tickets[i].sold) {
+                        vendidos++;
+                        ganancia += tickets[i].price;
+                    }
+                }
+                soldCountEl.textContent = vendidos;
+                totalRevenueEl.textContent = `$${ganancia.toLocaleString()}`;
+            }
+
+            // ══════════════════════════════════════
+            // VENTAS
+            // ══════════════════════════════════════
+            function abrirModalVenta(ticketNumbers, isBlock = false) {
+                if (Array.isArray(ticketNumbers)) {
+                    if (ticketNumbers.length === 0) {
+                        alert('No hay boletos disponibles para vender.');
+                        return;
+                    }
+                    currentModalTicket = null;
+                    currentModalBlock = ticketNumbers;
+                    modalTicketNumber.textContent = `${ticketNumbers.length} boletos`;
+                } else {
+                    currentModalTicket = ticketNumbers;
+                    currentModalBlock = null;
+                    modalTicketNumber.textContent = `#${ticketNumbers}`;
+                }
+                sellerSelect.value = '';
+                selectedPrice = 200;
+                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
+                document.querySelector('.price-option[data-price="200"]').classList.add('selected');
+                modalOverlay.classList.add('active');
+                sellerSelect.focus();
+            }
+
+            function cerrarModal() {
+                modalOverlay.classList.remove('active');
+                currentModalTicket = null;
+                currentModalBlock = null;
+            }
+
+            async function confirmarVenta() {
+                const seller = sellerSelect.value;
+                if (!seller) {
+                    alert('Selecciona un vendedor.');
+                    return;
+                }
+                const price = selectedPrice;
+
+                let ids = [];
+                if (currentModalTicket !== null) {
+                    if (tickets[currentModalTicket].sold) {
+                        alert('Este boleto ya está vendido.');
+                        cerrarModal();
+                        return;
+                    }
+                    ids = [currentModalTicket];
+                } else if (currentModalBlock && currentModalBlock.length > 0) {
+                    ids = currentModalBlock.filter(num => !tickets[num].sold);
+                    if (ids.length === 0) {
+                        alert('Todos los boletos seleccionados ya están vendidos.');
+                        cerrarModal();
+                        return;
+                    }
+                }
+
+                // Actualizar en Supabase (upsert)
+                const updates = ids.map(id => ({
+                    id: id,
+                    sold: true,
+                    seller: seller,
+                    price: price
+                }));
+
+                const { error } = await supabase
+                    .from('tickets')
+                    .upsert(updates, { onConflict: 'id' });
+
+                if (error) {
+                    console.error('Error al vender boletos:', error);
+                    alert('Hubo un error al guardar la venta.');
+                }
+
+                cerrarModal();
+            }
+
+            function manejarClickBoleto(num) {
+                if (tickets[num].sold) {
+                    const t = tickets[num];
+                    alert(`Boleto #${num}\nVendido por: ${t.seller}\nPrecio: $${t.price}`);
+                } else {
+                    abrirModalVenta(num, false);
+                }
+            }
+
+            function venderPrimerosN(n) {
+                const disponibles = [];
+                for (let i = 1; i <= n; i++) {
+                    if (!tickets[i].sold) disponibles.push(i);
+                }
+                if (disponibles.length === 0) {
+                    alert(`Los primeros ${n} boletos ya están vendidos.`);
+                    return;
+                }
+                abrirModalVenta(disponibles, true);
+            }
+
+            function venderAleatoriosN(n) {
+                const disponibles = [];
+                for (let i = 1; i <= TOTAL; i++) {
+                    if (!tickets[i].sold) disponibles.push(i);
+                }
+                if (disponibles.length === 0) {
+                    alert('Todos los boletos están vendidos.');
+                    return;
+                }
+                // Mezclar
+                for (let i = disponibles.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [disponibles[i], disponibles[j]] = [disponibles[j], disponibles[i]];
+                }
+                const seleccion = disponibles.slice(0, Math.min(n, disponibles.length));
+                abrirModalVenta(seleccion, true);
+            }
+
+            async function reiniciarTodo() {
+                if (!confirm('¿Seguro que quieres reiniciar todas las ventas?')) return;
+
+                // Poner todos como no vendidos
+                const updates = [];
+                for (let i = 1; i <= TOTAL; i++) {
+                    updates.push({
+                        id: i,
+                        sold: false,
+                        seller: '',
+                        price: 0
+                    });
+                }
+
+                const { error } = await supabase
+                    .from('tickets')
+                    .upsert(updates, { onConflict: 'id' });
+
+                if (error) {
+                    console.error('Error al reiniciar:', error);
+                    alert('Error al reiniciar las ventas.');
+                }
+            }
+
+            function actualizarReloj() {
+                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
+            }
+
+            // ══════════════════════════════════════
+            // EVENTOS DE BOTONES
+            // ══════════════════════════════════════
+            priceOptionsContainer.addEventListener('click', (e) => {
+                const option = e.target.closest('.price-option');
+                if (!option) return;
+                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedPrice = parseInt(option.dataset.price, 10);
+            });
+
+            cancelSellBtn.addEventListener('click', cerrarModal);
+            confirmSellBtn.addEventListener('click', confirmarVenta);
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
+            modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
+
+            document.getElementById('btnSell200').addEventListener('click', () => venderPrimerosN(200));
+            document.getElementById('btnSell250').addEventListener('click', () => venderPrimerosN(250));
+            document.getElementById('btnSellRandom').addEventListener('click', () => venderAleatoriosN(200));
+            document.getElementById('btnResetAll').addEventListener('click', reiniciarTodo);
+
+            // ══════════════════════════════════════
+            // ARRANQUE
+            // ══════════════════════════════════════
+            (async function init() {
+                construirGrid();
+                await cargarEstadoInicial();
+                suscribirCambiosEnVivo();
+                actualizarReloj();
+                setInterval(actualizarReloj, 1000);
+            })();
+        })();
     </script>
 </body>
 </html>
