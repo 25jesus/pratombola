@@ -157,12 +157,21 @@
             padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap;
             pointer-events: none; z-index: 3; color: #c9d1d9; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
+
+        .connection-status {
+            font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .connection-status.success { background: #1a3a1f; color: #3fb950; border: 1px solid #2ea043; }
+        .connection-status.error { background: #2d1a1a; color: #f85149; border: 1px solid #5a2e2e; }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="header">
-            <div class="header-left"><h1>🎟️ Control de Boletos 1-300</h1></div>
+            <div class="header-left">
+                <h1>🎟️ Control de Boletos 1-300</h1>
+                <span id="connectionStatus" class="connection-status">⏳ Verificando conexión...</span>
+            </div>
             <div class="stats">
                 <div class="stat-item"><span class="label">🎯 Vendidos</span><span class="value" id="soldCount">0</span></div>
                 <div class="stat-item"><span class="label">💰 Ganancia Total</span><span class="value" id="totalRevenue">$0</span></div>
@@ -211,14 +220,10 @@
 
     <script>
         (function() {
-            // ══════════════════════════════════════
-            // CONFIGURACIÓN DE TU PROYECTO SUPABASE
-            // ══════════════════════════════════════
             const SUPABASE_URL = "https://zavonkfpunwwqjliojtb.supabase.co";
             const SUPABASE_ANON_KEY = "sb_publishable_MEkptp0YhHcsTLDPoIl0Nw_s3kMyYo9";
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
             const TOTAL = 300;
             let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
@@ -230,6 +235,7 @@
             const soldCountEl = document.getElementById('soldCount');
             const totalRevenueEl = document.getElementById('totalRevenue');
             const liveTimestampEl = document.getElementById('liveTimestamp');
+            const connectionStatusEl = document.getElementById('connectionStatus');
             const cellElements = {};
 
             const modalOverlay = document.getElementById('sellModal');
@@ -239,9 +245,34 @@
             const cancelSellBtn = document.getElementById('cancelSell');
             const confirmSellBtn = document.getElementById('confirmSell');
 
-            // ══════════════════════════════════════
-            // CARGA INICIAL DESDE SUPABASE
-            // ══════════════════════════════════════
+            // Muestra el estado de la conexión
+            function setConnectionStatus(success, message) {
+                connectionStatusEl.textContent = message;
+                connectionStatusEl.className = 'connection-status ' + (success ? 'success' : 'error');
+            }
+
+            // Verifica conexión al cargar
+            async function verificarConexion() {
+                try {
+                    const { count, error } = await supabase
+                        .from('tickets')
+                        .select('*', { count: 'exact', head: true });
+                    if (error) {
+                        setConnectionStatus(false, '❌ Error: ' + error.message);
+                        console.error('Error de conexión:', error);
+                        alert('Error de conexión con Supabase:\n' + error.message + '\n\nVerifica que hayas ejecutado el SQL para desactivar RLS o crear políticas.');
+                        return false;
+                    }
+                    setConnectionStatus(true, '✅ Conectado (' + count + ' boletos)');
+                    return true;
+                } catch (err) {
+                    setConnectionStatus(false, '❌ Error de red');
+                    console.error(err);
+                    alert('No se pudo conectar con Supabase. Revisa la consola (F12).');
+                    return false;
+                }
+            }
+
             async function cargarEstadoInicial() {
                 const { data, error } = await supabase
                     .from('tickets')
@@ -249,8 +280,8 @@
                     .order('id', { ascending: true });
 
                 if (error) {
-                    console.error('Error al cargar los boletos:', error);
-                    alert('Error conectando con la base de datos. Verifica que la tabla "tickets" existe y tiene los 300 registros.');
+                    console.error('Error al cargar boletos:', error);
+                    alert('Error al cargar los boletos:\n' + error.message);
                     return;
                 }
 
@@ -264,15 +295,12 @@
                         };
                     }
                 } else {
-                    console.warn('La tabla no tiene exactamente 300 registros. Asegúrate de haber ejecutado el SQL inicial.');
+                    alert('La tabla no tiene 300 registros. Ejecuta el SQL de inicialización:\n\nINSERT INTO tickets (id) SELECT generate_series(1,300);');
                 }
                 refrescarTodasLasCeldas();
                 actualizarTotales();
             }
 
-            // ══════════════════════════════════════
-            // TIEMPO REAL: SUSCRIPCIÓN A CAMBIOS
-            // ══════════════════════════════════════
             function suscribirCambiosEnVivo() {
                 supabase
                     .channel('tickets-cambios')
@@ -295,9 +323,6 @@
                     .subscribe();
             }
 
-            // ══════════════════════════════════════
-            // INTERFAZ DE USUARIO
-            // ══════════════════════════════════════
             function construirGrid() {
                 gridEl.innerHTML = '';
                 for (let num = 1; num <= TOTAL; num++) {
@@ -349,9 +374,6 @@
                 totalRevenueEl.textContent = `$${ganancia.toLocaleString()}`;
             }
 
-            // ══════════════════════════════════════
-            // LÓGICA DE VENTAS
-            // ══════════════════════════════════════
             function abrirModalVenta(ticketNumbers, isBlock = false) {
                 if (Array.isArray(ticketNumbers)) {
                     if (ticketNumbers.length === 0) {
@@ -405,7 +427,6 @@
                     }
                 }
 
-                // Actualizar en Supabase
                 const updates = ids.map(id => ({
                     id: id,
                     sold: true,
@@ -418,11 +439,11 @@
                     .upsert(updates, { onConflict: 'id' });
 
                 if (error) {
-                    console.error('Error al vender boletos:', error);
-                    alert('Hubo un error al guardar la venta.');
+                    console.error('Error al guardar venta:', error);
+                    alert('Error al guardar la venta:\n' + error.message + '\n\nPosible causa: Políticas de seguridad (RLS). Ejecuta: ALTER TABLE tickets DISABLE ROW LEVEL SECURITY;');
+                } else {
+                    cerrarModal();
                 }
-
-                cerrarModal();
             }
 
             function manejarClickBoleto(num) {
@@ -482,7 +503,7 @@
 
                 if (error) {
                     console.error('Error al reiniciar:', error);
-                    alert('Error al reiniciar las ventas.');
+                    alert('Error al reiniciar:\n' + error.message);
                 }
             }
 
@@ -490,9 +511,7 @@
                 liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
             }
 
-            // ══════════════════════════════════════
-            // EVENTOS DE BOTONES
-            // ══════════════════════════════════════
+            // Eventos
             priceOptionsContainer.addEventListener('click', (e) => {
                 const option = e.target.closest('.price-option');
                 if (!option) return;
@@ -511,13 +530,14 @@
             document.getElementById('btnSellRandom').addEventListener('click', () => venderAleatoriosN(200));
             document.getElementById('btnResetAll').addEventListener('click', reiniciarTodo);
 
-            // ══════════════════════════════════════
-            // ARRANQUE
-            // ══════════════════════════════════════
+            // Arranque
             (async function init() {
                 construirGrid();
-                await cargarEstadoInicial();
-                suscribirCambiosEnVivo();
+                const conectado = await verificarConexion();
+                if (conectado) {
+                    await cargarEstadoInicial();
+                    suscribirCambiosEnVivo();
+                }
                 actualizarReloj();
                 setInterval(actualizarReloj, 1000);
             })();
