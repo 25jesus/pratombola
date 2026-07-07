@@ -15,6 +15,9 @@
             --green-bright: #3fb950;
             --green-bg: #1a3a1f;
             --green-border: #2ea043;
+            --red-bright: #f85149;
+            --red-bg: #3d1a1a;
+            --red-border: #7a3a3a;
             --gray-bg: #1c1c20;
             --gray-border: #3a3a3e;
             --accent: #58a6ff;
@@ -60,12 +63,38 @@
             padding-bottom: 14px;
             border-bottom: 1px solid var(--border);
         }
+        .header-left { display: flex; align-items: center; gap: 12px; }
         .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; }
+
+        /* Indicador de conexión */
+        .db-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: #1a1f27;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        .db-status .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #555;
+            transition: background 0.3s;
+        }
+        .db-status .dot.connected { background: var(--green-bright); box-shadow: 0 0 8px rgba(63,185,80,0.5); }
+        .db-status .dot.disconnected { background: var(--red-bright); box-shadow: 0 0 8px rgba(248,81,73,0.5); }
+        .db-status .dot.checking { background: #f0a020; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.5; } }
+
         .stats { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; font-size: 0.9rem; }
         .stat-item { background: #1a1f27; border: 1px solid var(--border); border-radius: 12px; padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
         .stat-item .label { color: #8b949e; font-size: 0.8rem; }
         .stat-item .value { font-size: 1.3rem; font-weight: 700; color: var(--green-bright); font-variant-numeric: tabular-nums; }
-        .timestamp { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; color: #7d8590; margin-left: auto; }
+        .timestamp { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; color: #7d8590; }
 
         .controls {
             display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center;
@@ -81,6 +110,8 @@
         .btn.accent:hover { background: #1f4a2f; border-color: #3fb950; color: #fff; }
         .btn.danger { background: #2d1a1a; border-color: #5a2e2e; color: #f0a0a0; }
         .btn.danger:hover { background: #3d2020; border-color: #7a3a3a; color: #fff; }
+        .btn.info { background: #1a2535; border-color: #2e4a6e; color: #9cc4f0; }
+        .btn.info:hover { background: #1f3145; border-color: #3e6a9e; color: #fff; }
         .separator { width: 1px; height: 24px; background: #2d333b; margin: 0 6px; }
         .legend { display: flex; gap: 16px; font-size: 0.78rem; color: #8b949e; align-items: center; margin-left: auto; }
         .legend span { display: flex; align-items: center; gap: 5px; }
@@ -133,7 +164,7 @@
         .modal-overlay.active { visibility: visible; opacity: 1; }
         .modal {
             background: var(--modal-bg); border: 1px solid var(--border);
-            border-radius: 16px; padding: 24px; width: 90%; max-width: 400px;
+            border-radius: 16px; padding: 24px; width: 90%; max-width: 500px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: var(--text);
         }
         .modal h3 { margin-bottom: 16px; font-size: 1.2rem; }
@@ -141,6 +172,10 @@
         .modal select {
             width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid var(--border);
             border-radius: 8px; color: #e6edf3; font-size: 0.9rem; margin-bottom: 14px; outline: none;
+        }
+        .modal pre {
+            background: #0d1117; padding: 12px; border-radius: 8px; font-size: 0.78rem;
+            overflow-x: auto; color: #c9d1d9; border: 1px solid var(--border); margin: 10px 0;
         }
         .price-options { display: flex; gap: 12px; margin-bottom: 20px; }
         .price-option {
@@ -157,12 +192,6 @@
             padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap;
             pointer-events: none; z-index: 3; color: #c9d1d9; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
-
-        .connection-status {
-            font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;
-        }
-        .connection-status.success { background: #1a3a1f; color: #3fb950; border: 1px solid #2ea043; }
-        .connection-status.error { background: #2d1a1a; color: #f85149; border: 1px solid #5a2e2e; }
     </style>
 </head>
 <body>
@@ -170,7 +199,10 @@
         <div class="header">
             <div class="header-left">
                 <h1>🎟️ Control de Boletos 1-300</h1>
-                <span id="connectionStatus" class="connection-status">⏳ Verificando conexión...</span>
+                <div class="db-status" id="dbStatus">
+                    <span class="dot checking" id="dbDot"></span>
+                    <span id="dbText">Verificando...</span>
+                </div>
             </div>
             <div class="stats">
                 <div class="stat-item"><span class="label">🎯 Vendidos</span><span class="value" id="soldCount">0</span></div>
@@ -185,6 +217,7 @@
             <div class="separator"></div>
             <button class="btn" id="btnSellRandom">🎲 Vender 200 aleatorios</button>
             <button class="btn danger" id="btnResetAll">🧹 Reiniciar todo</button>
+            <button class="btn info" id="btnCreateTable">🛠️ Crear tabla</button>
             <div class="legend">
                 <span><span class="legend-dot green"></span> Vendido</span>
                 <span><span class="legend-dot gray"></span> Disponible</span>
@@ -218,12 +251,39 @@
         </div>
     </div>
 
+    <!-- Modal crear tabla -->
+    <div class="modal-overlay" id="createTableModal">
+        <div class="modal">
+            <h3>🛠️ Crear tabla en Supabase</h3>
+            <p style="font-size:0.85rem; color:#8b949e; margin-bottom:10px;">
+                Copia y ejecuta este SQL en el <strong>SQL Editor</strong> de tu proyecto Supabase:
+            </p>
+            <pre id="sqlCode">CREATE TABLE tickets (
+  id INT PRIMARY KEY,
+  sold BOOLEAN DEFAULT FALSE,
+  seller TEXT DEFAULT '',
+  price INT DEFAULT 0
+);
+
+INSERT INTO tickets (id)
+SELECT generate_series(1, 300);</pre>
+            <div class="modal-actions">
+                <button class="btn" id="copySqlBtn">📋 Copiar SQL</button>
+                <button class="btn" id="closeCreateTableModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function() {
+            // ══════════════════════════════════════
+            // CONFIGURACIÓN DE TU PROYECTO SUPABASE
+            // ══════════════════════════════════════
             const SUPABASE_URL = "https://zavonkfpunwwqjliojtb.supabase.co";
             const SUPABASE_ANON_KEY = "sb_publishable_MEkptp0YhHcsTLDPoIl0Nw_s3kMyYo9";
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
             const TOTAL = 300;
             let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
@@ -235,9 +295,9 @@
             const soldCountEl = document.getElementById('soldCount');
             const totalRevenueEl = document.getElementById('totalRevenue');
             const liveTimestampEl = document.getElementById('liveTimestamp');
-            const connectionStatusEl = document.getElementById('connectionStatus');
             const cellElements = {};
 
+            // Modal de venta
             const modalOverlay = document.getElementById('sellModal');
             const modalTicketNumber = document.getElementById('modalTicketNumber');
             const sellerSelect = document.getElementById('sellerSelect');
@@ -245,34 +305,51 @@
             const cancelSellBtn = document.getElementById('cancelSell');
             const confirmSellBtn = document.getElementById('confirmSell');
 
-            // Muestra el estado de la conexión
-            function setConnectionStatus(success, message) {
-                connectionStatusEl.textContent = message;
-                connectionStatusEl.className = 'connection-status ' + (success ? 'success' : 'error');
+            // Modal crear tabla
+            const createTableModal = document.getElementById('createTableModal');
+            const copySqlBtn = document.getElementById('copySqlBtn');
+            const closeCreateTableModal = document.getElementById('closeCreateTableModal');
+
+            // Indicador de conexión
+            const dbDot = document.getElementById('dbDot');
+            const dbText = document.getElementById('dbText');
+
+            // ══════════════════════════════════════
+            // FUNCIONES DE CONEXIÓN Y ESTADO DB
+            // ══════════════════════════════════════
+            function setDBStatus(status, message) {
+                dbDot.className = 'dot ' + status; // connected, disconnected, checking
+                dbText.textContent = message;
             }
 
-            // Verifica conexión al cargar
             async function verificarConexion() {
+                setDBStatus('checking', 'Verificando...');
                 try {
-                    const { count, error } = await supabase
+                    const { data, error, count } = await supabase
                         .from('tickets')
                         .select('*', { count: 'exact', head: true });
+
                     if (error) {
-                        setConnectionStatus(false, '❌ Error: ' + error.message);
-                        console.error('Error de conexión:', error);
-                        alert('Error de conexión con Supabase:\n' + error.message + '\n\nVerifica que hayas ejecutado el SQL para desactivar RLS o crear políticas.');
+                        if (error.code === '42P01') { // undefined_table
+                            setDBStatus('disconnected', 'Tabla no existe');
+                            console.warn('La tabla "tickets" no existe. Usa el botón "Crear tabla".');
+                        } else {
+                            setDBStatus('disconnected', 'Error: ' + error.message);
+                        }
                         return false;
                     }
-                    setConnectionStatus(true, '✅ Conectado (' + count + ' boletos)');
+                    setDBStatus('connected', 'Conectada');
                     return true;
                 } catch (err) {
-                    setConnectionStatus(false, '❌ Error de red');
+                    setDBStatus('disconnected', 'Sin conexión');
                     console.error(err);
-                    alert('No se pudo conectar con Supabase. Revisa la consola (F12).');
                     return false;
                 }
             }
 
+            // ══════════════════════════════════════
+            // CARGA INICIAL DESDE SUPABASE
+            // ══════════════════════════════════════
             async function cargarEstadoInicial() {
                 const { data, error } = await supabase
                     .from('tickets')
@@ -280,8 +357,12 @@
                     .order('id', { ascending: true });
 
                 if (error) {
-                    console.error('Error al cargar boletos:', error);
-                    alert('Error al cargar los boletos:\n' + error.message);
+                    console.error('Error al cargar los boletos:', error);
+                    if (error.code === '42P01') {
+                        alert('La tabla "tickets" no existe. Usa el botón "Crear tabla" para generarla.');
+                    } else {
+                        alert('Error conectando con la base de datos: ' + error.message);
+                    }
                     return;
                 }
 
@@ -295,12 +376,15 @@
                         };
                     }
                 } else {
-                    alert('La tabla no tiene 300 registros. Ejecuta el SQL de inicialización:\n\nINSERT INTO tickets (id) SELECT generate_series(1,300);');
+                    console.warn('La tabla no tiene exactamente 300 registros. Se recomienda recrearla.');
                 }
                 refrescarTodasLasCeldas();
                 actualizarTotales();
             }
 
+            // ══════════════════════════════════════
+            // TIEMPO REAL: SUSCRIPCIÓN A CAMBIOS
+            // ══════════════════════════════════════
             function suscribirCambiosEnVivo() {
                 supabase
                     .channel('tickets-cambios')
@@ -323,6 +407,9 @@
                     .subscribe();
             }
 
+            // ══════════════════════════════════════
+            // INTERFAZ DE USUARIO
+            // ══════════════════════════════════════
             function construirGrid() {
                 gridEl.innerHTML = '';
                 for (let num = 1; num <= TOTAL; num++) {
@@ -374,6 +461,9 @@
                 totalRevenueEl.textContent = `$${ganancia.toLocaleString()}`;
             }
 
+            // ══════════════════════════════════════
+            // LÓGICA DE VENTAS
+            // ══════════════════════════════════════
             function abrirModalVenta(ticketNumbers, isBlock = false) {
                 if (Array.isArray(ticketNumbers)) {
                     if (ticketNumbers.length === 0) {
@@ -439,11 +529,11 @@
                     .upsert(updates, { onConflict: 'id' });
 
                 if (error) {
-                    console.error('Error al guardar venta:', error);
-                    alert('Error al guardar la venta:\n' + error.message + '\n\nPosible causa: Políticas de seguridad (RLS). Ejecuta: ALTER TABLE tickets DISABLE ROW LEVEL SECURITY;');
-                } else {
-                    cerrarModal();
+                    console.error('Error al vender boletos:', error);
+                    alert('Hubo un error al guardar la venta.');
                 }
+
+                cerrarModal();
             }
 
             function manejarClickBoleto(num) {
@@ -503,7 +593,7 @@
 
                 if (error) {
                     console.error('Error al reiniciar:', error);
-                    alert('Error al reiniciar:\n' + error.message);
+                    alert('Error al reiniciar las ventas.');
                 }
             }
 
@@ -511,7 +601,27 @@
                 liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
             }
 
-            // Eventos
+            // ══════════════════════════════════════
+            // MODAL CREAR TABLA
+            // ══════════════════════════════════════
+            function abrirModalCrearTabla() {
+                createTableModal.classList.add('active');
+            }
+
+            function cerrarModalCrearTabla() {
+                createTableModal.classList.remove('active');
+            }
+
+            function copiarSQL() {
+                const sql = document.getElementById('sqlCode').innerText;
+                navigator.clipboard.writeText(sql).then(() => {
+                    alert('SQL copiado al portapapeles. Pégalo en el SQL Editor de Supabase.');
+                });
+            }
+
+            // ══════════════════════════════════════
+            // EVENTOS DE BOTONES
+            // ══════════════════════════════════════
             priceOptionsContainer.addEventListener('click', (e) => {
                 const option = e.target.closest('.price-option');
                 if (!option) return;
@@ -522,19 +632,25 @@
 
             cancelSellBtn.addEventListener('click', cerrarModal);
             confirmSellBtn.addEventListener('click', confirmarVenta);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { cerrarModal(); cerrarModalCrearTabla(); } });
             modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
+            createTableModal.addEventListener('click', (e) => { if (e.target === createTableModal) cerrarModalCrearTabla(); });
 
             document.getElementById('btnSell200').addEventListener('click', () => venderPrimerosN(200));
             document.getElementById('btnSell250').addEventListener('click', () => venderPrimerosN(250));
             document.getElementById('btnSellRandom').addEventListener('click', () => venderAleatoriosN(200));
             document.getElementById('btnResetAll').addEventListener('click', reiniciarTodo);
+            document.getElementById('btnCreateTable').addEventListener('click', abrirModalCrearTabla);
+            copySqlBtn.addEventListener('click', copiarSQL);
+            closeCreateTableModal.addEventListener('click', cerrarModalCrearTabla);
 
-            // Arranque
+            // ══════════════════════════════════════
+            // ARRANQUE
+            // ══════════════════════════════════════
             (async function init() {
                 construirGrid();
-                const conectado = await verificarConexion();
-                if (conectado) {
+                const conectada = await verificarConexion();
+                if (conectada) {
                     await cargarEstadoInicial();
                     suscribirCambiosEnVivo();
                 }
