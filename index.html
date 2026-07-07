@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Venta de Boletos 1-300 | Registro de Vendedor y Precio</title>
+    <title>Control de Venta de Boletos 1-300 | Vendedores Predefinidos</title>
     <style>
         :root {
             --bg: #0b0f14;
@@ -49,7 +49,6 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.6);
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -91,7 +90,6 @@
             margin-left: auto;
         }
 
-        /* Controles */
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -127,7 +125,6 @@
         .legend-dot.green { background: var(--green-bg); border-color: var(--green-border); }
         .legend-dot.gray { background: var(--gray-bg); border-color: var(--gray-border); }
 
-        /* Grid de boletos */
         .ticket-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
@@ -194,11 +191,11 @@
         }
         .modal h3 { margin-bottom: 16px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
         .modal label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #8b949e; }
-        .modal input[type="text"] {
+        .modal select {
             width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid var(--border);
             border-radius: 8px; color: #e6edf3; font-size: 0.9rem; margin-bottom: 14px; outline: none;
         }
-        .modal input[type="text"]:focus { border-color: #58a6ff; }
+        .modal select:focus { border-color: #58a6ff; }
         .price-options { display: flex; gap: 12px; margin-bottom: 20px; }
         .price-option {
             flex: 1; text-align: center; background: #1c2129; border: 1px solid var(--border);
@@ -208,7 +205,7 @@
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
         .modal-actions .btn { min-width: 80px; justify-content: center; }
 
-        /* Tooltip simple para ver detalles en boletos vendidos */
+        /* Tooltip */
         .ticket-cell[data-tooltip]:hover::after {
             content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%;
             transform: translateX(-50%); background: #1c2129; border: 1px solid var(--border);
@@ -255,11 +252,17 @@
     <div class="modal-overlay" id="sellModal">
         <div class="modal">
             <h3>🎫 Vender Boleto <span id="modalTicketNumber">#0</span></h3>
-            <label for="sellerName">👤 Nombre del vendedor</label>
-            <input type="text" id="sellerName" placeholder="Ej. Juan Pérez" autocomplete="off">
+            <label for="sellerSelect">👤 Vendedor</label>
+            <select id="sellerSelect">
+                <option value="">-- Selecciona un vendedor --</option>
+                <option value="Carmen">Carmen</option>
+                <option value="Jesús">Jesús</option>
+                <option value="Leslie">Leslie</option>
+                <option value="Mamá">Mamá</option>
+            </select>
             <label>💵 Precio de venta</label>
             <div class="price-options" id="priceOptions">
-                <div class="price-option" data-price="200">$200</div>
+                <div class="price-option selected" data-price="200">$200</div>
                 <div class="price-option" data-price="250">$250</div>
             </div>
             <div class="modal-actions">
@@ -272,14 +275,14 @@
     <script>
         (function() {
             const TOTAL = 300;
-            const STORAGE_KEY = 'ticketSalesFull';
+            const STORAGE_KEY = 'ticketSalesV2';
 
             // Estado extendido: cada boleto { sold, seller, price }
             let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
             // Variables del modal
-            let currentModalTicket = null;       // número de boleto individual
-            let currentModalBlock = null;        // array de números si es venta masiva
+            let currentModalTicket = null;
+            let currentModalBlock = null;
             let selectedPrice = 200;
 
             const gridEl = document.getElementById('ticketGrid');
@@ -291,7 +294,7 @@
             // Modal elements
             const modalOverlay = document.getElementById('sellModal');
             const modalTicketNumber = document.getElementById('modalTicketNumber');
-            const sellerNameInput = document.getElementById('sellerName');
+            const sellerSelect = document.getElementById('sellerSelect');
             const priceOptionsContainer = document.getElementById('priceOptions');
             const cancelSellBtn = document.getElementById('cancelSell');
             const confirmSellBtn = document.getElementById('confirmSell');
@@ -354,7 +357,7 @@
                     container.classList.add('sold');
                     container.classList.remove('available');
                     statusEl.textContent = `$${t.price}`;
-                    container.setAttribute('data-tooltip', `Vendido por ${t.seller} a $${t.price}`);
+                    container.setAttribute('data-tooltip', `${t.seller} — $${t.price}`);
                 } else {
                     container.classList.remove('sold');
                     container.classList.add('available');
@@ -382,7 +385,6 @@
 
             // ============ MODAL LOGIC ============
             function openSellModal(ticketNumbers, isBlock = false) {
-                // ticketNumbers puede ser un número (venta individual) o un array (bloque)
                 if (Array.isArray(ticketNumbers)) {
                     if (ticketNumbers.length === 0) {
                         alert('No hay boletos disponibles para vender en esta selección.');
@@ -397,14 +399,15 @@
                     modalTicketNumber.textContent = `#${ticketNumbers}`;
                 }
 
-                sellerNameInput.value = '';
+                // Resetear selección de vendedor y precio
+                sellerSelect.value = '';
                 selectedPrice = 200;
-                // Resetear selección de precio
                 document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
                 const defaultOption = document.querySelector('.price-option[data-price="200"]');
                 if (defaultOption) defaultOption.classList.add('selected');
+
                 modalOverlay.classList.add('active');
-                sellerNameInput.focus();
+                sellerSelect.focus();
             }
 
             function closeModal() {
@@ -414,14 +417,13 @@
             }
 
             function confirmSale() {
-                const seller = sellerNameInput.value.trim();
+                const seller = sellerSelect.value;
                 if (!seller) {
-                    alert('Por favor ingresa el nombre del vendedor.');
+                    alert('Por favor selecciona un vendedor.');
                     return;
                 }
                 const price = selectedPrice;
 
-                // Determinar boletos a vender
                 let targets = [];
                 if (currentModalTicket !== null) {
                     if (tickets[currentModalTicket].sold) {
@@ -456,7 +458,6 @@
             // ============ EVENT HANDLERS ============
             function onTicketClick(num) {
                 if (tickets[num].sold) {
-                    // Mostrar detalles
                     const t = tickets[num];
                     alert(`Boleto #${num}\nVendido por: ${t.seller}\nPrecio: $${t.price}`);
                 } else {
@@ -464,7 +465,6 @@
                 }
             }
 
-            // Venta masiva: primeros N
             function sellFirstN(n) {
                 const available = [];
                 for (let i = 1; i <= n; i++) {
@@ -477,7 +477,6 @@
                 openSellModal(available, true);
             }
 
-            // Venta aleatoria de N boletos
             function sellRandomN(n) {
                 const available = [];
                 for (let i = 1; i <= TOTAL; i++) {
@@ -487,7 +486,6 @@
                     alert('Todos los boletos están vendidos.');
                     return;
                 }
-                // Mezclar y tomar n
                 for (let i = available.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [available[i], available[j]] = [available[j], available[i]];
@@ -513,7 +511,6 @@
             }
 
             // ============ EVENT LISTENERS ============
-            // Precio seleccionado
             priceOptionsContainer.addEventListener('click', (e) => {
                 const option = e.target.closest('.price-option');
                 if (!option) return;
@@ -525,14 +522,12 @@
             cancelSellBtn.addEventListener('click', closeModal);
             confirmSellBtn.addEventListener('click', confirmSale);
 
-            // Cerrar modal con Escape
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
                     closeModal();
                 }
             });
 
-            // Cerrar modal al hacer clic fuera
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target === modalOverlay) closeModal();
             });
@@ -553,7 +548,7 @@
             }
 
             init();
-            console.log('✅ Panel de control con registro de vendedor y precio activo.');
+            console.log('✅ Panel de control con vendedores predefinidos listo.');
         })();
     </script>
 </body>
