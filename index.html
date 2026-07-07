@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Venta de Boletos 1-300 | Supabase</title>
-    <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Ventas 1-300 | Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
-        /* Estilos base (se mantienen igual) */
+        /* ===== ESTILOS (iguales, con algunos ajustes) ===== */
         :root {
             --bg: #0b0f14;
             --panel-bg: #131920;
@@ -22,12 +22,15 @@
             --accent: #58a6ff;
             --danger: #f85149;
             --card-radius: 8px;
-            --transition: 0.2s ease;
             --modal-bg: #1c2128;
-            --modal-overlay: rgba(0,0,0,0.7);
+            --modal-overlay: rgba(0, 0, 0, 0.7);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background: var(--bg);
             font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
@@ -37,8 +40,7 @@
             justify-content: center;
             align-items: center;
             padding: 16px;
-            background-image:
-                radial-gradient(ellipse at 20% 30%, rgba(63, 185, 80, 0.04) 0%, transparent 50%),
+            background-image: radial-gradient(ellipse at 20% 30%, rgba(63, 185, 80, 0.04) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 70%, rgba(63, 185, 80, 0.03) 0%, transparent 50%);
         }
 
@@ -49,7 +51,7 @@
             border-radius: 20px;
             border: 1px solid var(--border);
             padding: 20px 24px 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
         }
 
         .header {
@@ -62,30 +64,113 @@
             padding-bottom: 14px;
             border-bottom: 1px solid var(--border);
         }
-        .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; }
-        .stats { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; font-size: 0.9rem; }
-        .stat-item { background: #1a1f27; border: 1px solid var(--border); border-radius: 12px; padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
-        .stat-item .label { color: #8b949e; font-size: 0.8rem; }
-        .stat-item .value { font-size: 1.3rem; font-weight: 700; color: var(--green-bright); font-variant-numeric: tabular-nums; }
-        .timestamp { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; color: #7d8590; margin-left: auto; }
+        .header-left h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .stat-item {
+            background: #1a1f27;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stat-item .label {
+            color: #8b949e;
+            font-size: 0.8rem;
+        }
+        .stat-item .value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--green-bright);
+            font-variant-numeric: tabular-nums;
+        }
+        .timestamp {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 0.8rem;
+            color: #7d8590;
+            margin-left: auto;
+        }
 
         .controls {
-            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
         }
         .btn {
-            background: #1c2129; border: 1px solid var(--border); color: #c9d1d9;
-            padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 500;
-            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; user-select: none;
+            background: #1c2129;
+            border: 1px solid var(--border);
+            color: #c9d1d9;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
         }
-        .btn:hover { background: #242b35; border-color: #4a5568; color: #fff; transform: translateY(-1px); }
-        .btn:active { transform: scale(0.97); }
-        .btn.accent { background: #1a3a2a; border-color: #2ea043; color: #9fddb0; }
-        .btn.accent:hover { background: #1f4a2f; border-color: #3fb950; color: #fff; }
-        .btn.danger { background: #2d1a1a; border-color: #5a2e2e; color: #f0a0a0; }
-        .btn.danger:hover { background: #3d2020; border-color: #7a3a3a; color: #fff; }
-        .separator { width: 1px; height: 24px; background: #2d333b; margin: 0 6px; }
+        .btn:hover {
+            background: #242b35;
+            border-color: #4a5568;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn.accent {
+            background: #1a3a2a;
+            border-color: #2ea043;
+            color: #9fddb0;
+        }
+        .btn.accent:hover {
+            background: #1f4a2f;
+            border-color: #3fb950;
+            color: #fff;
+        }
+        .btn.danger {
+            background: #2d1a1a;
+            border-color: #5a2e2e;
+            color: #f0a0a0;
+        }
+        .btn.danger:hover {
+            background: #3d2020;
+            border-color: #7a3a3a;
+            color: #fff;
+        }
+        .btn.warning {
+            background: #3d2a1a;
+            border-color: #7a5a2e;
+            color: #f0d0a0;
+        }
+        .btn.warning:hover {
+            background: #4d3a2a;
+            border-color: #9a7a3a;
+            color: #fff;
+        }
+        .separator {
+            width: 1px;
+            height: 24px;
+            background: #2d333b;
+            margin: 0 6px;
+        }
 
-        /* --- NUEVO: Estilos del indicador de conexión --- */
+        /* Indicador de conexión */
         .status-container {
             display: flex;
             align-items: center;
@@ -113,24 +198,53 @@
         }
         .status-dot.online {
             background: #3fb950;
-            box-shadow: 0 0 10px rgba(63,185,80,0.5);
+            box-shadow: 0 0 10px rgba(63, 185, 80, 0.5);
         }
         .status-dot.offline {
             background: #f85149;
-            box-shadow: 0 0 10px rgba(248,81,73,0.5);
+            box-shadow: 0 0 10px rgba(248, 81, 73, 0.5);
         }
         @keyframes pulse-dot {
-            0% { opacity: 0.4; transform: scale(0.9); }
-            50% { opacity: 1; transform: scale(1.1); }
-            100% { opacity: 0.4; transform: scale(0.9); }
+            0% {
+                opacity: 0.4;
+                transform: scale(0.9);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 0.4;
+                transform: scale(0.9);
+            }
         }
-        /* ------------------------------------------- */
 
-        .legend { display: flex; gap: 16px; font-size: 0.78rem; color: #8b949e; align-items: center; }
-        .legend span { display: flex; align-items: center; gap: 5px; }
-        .legend-dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid transparent; }
-        .legend-dot.green { background: var(--green-bg); border-color: var(--green-border); }
-        .legend-dot.gray { background: var(--gray-bg); border-color: var(--gray-border); }
+        .legend {
+            display: flex;
+            gap: 16px;
+            font-size: 0.78rem;
+            color: #8b949e;
+            align-items: center;
+        }
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            border: 1px solid transparent;
+        }
+        .legend-dot.green {
+            background: var(--green-bg);
+            border-color: var(--green-border);
+        }
+        .legend-dot.gray {
+            background: var(--gray-bg);
+            border-color: var(--gray-border);
+        }
 
         .ticket-grid {
             display: grid;
@@ -140,66 +254,205 @@
             overflow-y: auto;
             padding-right: 4px;
         }
-        .ticket-grid::-webkit-scrollbar { width: 7px; }
-        .ticket-grid::-webkit-scrollbar-track { background: #0f1319; border-radius: 10px; }
-        .ticket-grid::-webkit-scrollbar-thumb { background: #2a3039; border-radius: 10px; }
+        .ticket-grid::-webkit-scrollbar {
+            width: 7px;
+        }
+        .ticket-grid::-webkit-scrollbar-track {
+            background: #0f1319;
+            border-radius: 10px;
+        }
+        .ticket-grid::-webkit-scrollbar-thumb {
+            background: #2a3039;
+            border-radius: 10px;
+        }
 
         .ticket-cell {
-            background: var(--gray-bg); border: 2px solid var(--gray-border); border-radius: var(--card-radius);
-            padding: 8px 4px; text-align: center; cursor: pointer;
+            background: var(--gray-bg);
+            border: 2px solid var(--gray-border);
+            border-radius: var(--card-radius);
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
             transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.2s;
-            position: relative; overflow: hidden; min-height: 50px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-            user-select: none; font-weight: 600; font-size: 0.8rem; color: #6e7681;
+            position: relative;
+            overflow: hidden;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            user-select: none;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #6e7681;
         }
         .ticket-cell.sold {
-            background: var(--green-bg); border-color: var(--green-border); color: #fff;
-            box-shadow: 0 2px 10px rgba(63,185,80,0.3); animation: subtleGlow 3s ease-in-out infinite;
+            background: var(--green-bg);
+            border-color: var(--green-border);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
+            animation: subtleGlow 3s ease-in-out infinite;
         }
         @keyframes subtleGlow {
-            0%,100%{ box-shadow: 0 2px 10px rgba(63,185,80,0.3); }
-            50%{ box-shadow: 0 4px 20px rgba(63,185,80,0.55); }
+            0%,
+            100% {
+                box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(63, 185, 80, 0.55);
+            }
         }
-        .ticket-cell:hover { transform: translateY(-2px); z-index: 2; }
-        .ticket-cell.sold:hover { border-color: #4dda5a; box-shadow: 0 6px 24px rgba(63,185,80,0.6); }
-        .ticket-cell.available:hover { border-color: #5a5a62; background: #25252b; color: #aaa; }
-        .ticket-number { font-size: 0.8rem; font-weight: 700; z-index: 1; }
-        .ticket-status { font-size: 0.55rem; z-index: 1; font-weight: 500; letter-spacing: 0.2px; }
-        .ticket-cell.sold .ticket-status { color: #b8e6c0; }
-        .ticket-cell.available .ticket-status { color: #555; }
+        .ticket-cell:hover {
+            transform: translateY(-2px);
+            z-index: 2;
+        }
+        .ticket-cell.sold:hover {
+            border-color: #4dda5a;
+            box-shadow: 0 6px 24px rgba(63, 185, 80, 0.6);
+        }
+        .ticket-cell.available:hover {
+            border-color: #5a5a62;
+            background: #25252b;
+            color: #aaa;
+        }
+        .ticket-number {
+            font-size: 0.8rem;
+            font-weight: 700;
+            z-index: 1;
+        }
+        .ticket-status {
+            font-size: 0.55rem;
+            z-index: 1;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+        .ticket-cell.sold .ticket-status {
+            color: #b8e6c0;
+        }
+        .ticket-cell.available .ticket-status {
+            color: #555;
+        }
 
         /* Modal */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--modal-overlay); display: flex; justify-content: center; align-items: center;
-            z-index: 1000; visibility: hidden; opacity: 0; transition: opacity 0.25s ease, visibility 0.25s;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.25s ease, visibility 0.25s;
         }
-        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
         .modal {
-            background: var(--modal-bg); border: 1px solid var(--border);
-            border-radius: 16px; padding: 24px; width: 90%; max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: var(--text);
+            background: var(--modal-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            color: var(--text);
         }
-        .modal h3 { margin-bottom: 16px; font-size: 1.2rem; }
-        .modal label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #8b949e; }
-        .modal select {
-            width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid var(--border);
-            border-radius: 8px; color: #e6edf3; font-size: 0.9rem; margin-bottom: 14px; outline: none;
+        .modal h3 {
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .price-options { display: flex; gap: 12px; margin-bottom: 20px; }
+        .modal h3 small {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #8b949e;
+        }
+        .modal label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+        .modal select,
+        .modal input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: #e6edf3;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+            outline: none;
+        }
+        .modal input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .modal input[type="number"]::-webkit-outer-spin-button,
+        .modal input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .price-options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
         .price-option {
-            flex: 1; text-align: center; background: #1c2129; border: 1px solid var(--border);
-            border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s; font-weight: 600;
+            flex: 1;
+            text-align: center;
+            background: #1c2129;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
         }
-        .price-option.selected { background: #1a3a2a; border-color: #3fb950; color: #fff; }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-        .modal-actions .btn { min-width: 80px; justify-content: center; }
+        .price-option.selected {
+            background: #1a3a2a;
+            border-color: #3fb950;
+            color: #fff;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .modal-actions .btn {
+            min-width: 80px;
+            justify-content: center;
+        }
+        .modal-actions .btn.danger {
+            margin-right: auto;
+        }
 
         [data-tooltip]:hover::after {
-            content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%;
-            transform: translateX(-50%); background: #1c2129; border: 1px solid var(--border);
-            padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap;
-            pointer-events: none; z-index: 3; color: #c9d1d9; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1c2129;
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 3;
+            color: #c9d1d9;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
@@ -220,8 +473,8 @@
             <div class="separator"></div>
             <button class="btn" id="btnSellRandom">🎲 Vender 200 aleatorios</button>
             <button class="btn danger" id="btnResetAll">🧹 Reiniciar todo</button>
+            <button class="btn" id="btnRefresh">🔄 Refrescar</button>
 
-            <!-- NUEVO: Indicador de conexión a BD -->
             <div class="status-container" id="statusContainer" title="Estado de la conexión con Supabase">
                 <span class="status-dot connecting" id="dbStatus"></span>
                 <span id="statusText">Conectando...</span>
@@ -236,10 +489,10 @@
         <div class="ticket-grid" id="ticketGrid"></div>
     </div>
 
-    <!-- Modal de venta -->
+    <!-- ===== MODAL ÚNICO (venta + edición) ===== -->
     <div class="modal-overlay" id="sellModal">
         <div class="modal">
-            <h3>🎫 Vender Boleto <span id="modalTicketNumber">#0</span></h3>
+            <h3 id="modalTitle">🎫 Vender Boleto <span id="modalTicketNumber">#0</span></h3>
             <label for="sellerSelect">👤 Vendedor</label>
             <select id="sellerSelect">
                 <option value="">-- Selecciona un vendedor --</option>
@@ -254,6 +507,7 @@
                 <div class="price-option" data-price="250">$250</div>
             </div>
             <div class="modal-actions">
+                <button class="btn danger" id="btnAnular" style="display:none;">🗑️ Anular venta</button>
                 <button class="btn" id="cancelSell">Cancelar</button>
                 <button class="btn accent" id="confirmSell">✅ Confirmar venta</button>
             </div>
@@ -263,20 +517,20 @@
     <script>
         (function() {
             // ══════════════════════════════════════
-            // CONFIGURACIÓN DE SUPABASE
+            // CONFIGURACIÓN SUPABASE
             // ══════════════════════════════════════
             const SUPABASE_URL = "https://zavonkfpunwwqjliojtb.supabase.co";
             const SUPABASE_ANON_KEY = "sb_publishable_MEkptp0YhHcsTLDPoIl0Nw_s3kMyYo9";
-
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             const TOTAL = 300;
-            // Estado local: array indexado de 1 a 300
             let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
-            let currentModalTicket = null;
-            let currentModalBlock = null;
+            // Estado del modal
+            let currentModalTicket = null; // número individual
+            let currentModalBlock = null; // array de números (para venta múltiple)
             let selectedPrice = 200;
+            let editingMode = false; // true si estamos editando un boleto vendido
 
             const gridEl = document.getElementById('ticketGrid');
             const soldCountEl = document.getElementById('soldCount');
@@ -289,14 +543,16 @@
             const statusText = document.getElementById('statusText');
 
             const modalOverlay = document.getElementById('sellModal');
+            const modalTitle = document.getElementById('modalTitle');
             const modalTicketNumber = document.getElementById('modalTicketNumber');
             const sellerSelect = document.getElementById('sellerSelect');
             const priceOptionsContainer = document.getElementById('priceOptions');
             const cancelSellBtn = document.getElementById('cancelSell');
             const confirmSellBtn = document.getElementById('confirmSell');
+            const btnAnular = document.getElementById('btnAnular');
 
             // ══════════════════════════════════════
-            // FUNCIONES DE ESTADO DE CONEXIÓN
+            // ESTADO DE CONEXIÓN
             // ══════════════════════════════════════
             function setStatusOnline() {
                 statusDot.className = 'status-dot online';
@@ -317,7 +573,52 @@
             }
 
             // ══════════════════════════════════════
-            // INICIALIZACIÓN DE LA BASE DE DATOS
+            // REFRESCO PERIÓDICO (POLLING)
+            // ══════════════════════════════════════
+            let pollingInterval = null;
+
+            async function refrescarDatos() {
+                try {
+                    const { data, error } = await supabase
+                        .from('tickets')
+                        .select('*')
+                        .order('id', { ascending: true });
+
+                    if (error) throw error;
+
+                    if (data && data.length === TOTAL) {
+                        for (let i = 0; i < data.length; i++) {
+                            const row = data[i];
+                            tickets[row.id] = {
+                                sold: row.sold,
+                                seller: row.seller || '',
+                                price: row.price || 0
+                            };
+                        }
+                        refrescarTodasLasCeldas();
+                        actualizarTotales();
+                        setStatusOnline();
+                    }
+                } catch (err) {
+                    console.error('Error al refrescar boletos:', err);
+                    setStatusOffline(err.message || 'Error en el refresco');
+                }
+            }
+
+            function iniciarPolling(intervaloMs = 10000) {
+                if (pollingInterval) clearInterval(pollingInterval);
+                pollingInterval = setInterval(refrescarDatos, intervaloMs);
+            }
+
+            function detenerPolling() {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+
+            // ══════════════════════════════════════
+            // CARGA INICIAL Y SUSCRIPCIÓN EN VIVO
             // ══════════════════════════════════════
             async function cargarEstadoInicial() {
                 setStatusConnecting();
@@ -348,15 +649,11 @@
                 }
             }
 
-            // ══════════════════════════════════════
-            // TIEMPO REAL: SUSCRIPCIÓN A CAMBIOS
-            // ══════════════════════════════════════
             function suscribirCambiosEnVivo() {
                 supabase
                     .channel('tickets-cambios')
                     .on(
-                        'postgres_changes',
-                        { event: '*', schema: 'public', table: 'tickets' },
+                        'postgres_changes', { event: '*', schema: 'public', table: 'tickets' },
                         (payload) => {
                             if (payload.new && payload.new.id) {
                                 const id = payload.new.id;
@@ -380,7 +677,7 @@
             }
 
             // ══════════════════════════════════════
-            // INTERFAZ DE USUARIO (CELDAS)
+            // INTERFAZ DE USUARIO
             // ══════════════════════════════════════
             function construirGrid() {
                 gridEl.innerHTML = '';
@@ -422,7 +719,8 @@
             }
 
             function actualizarTotales() {
-                let vendidos = 0, ganancia = 0;
+                let vendidos = 0,
+                    ganancia = 0;
                 for (let i = 1; i <= TOTAL; i++) {
                     if (tickets[i].sold) {
                         vendidos++;
@@ -434,9 +732,14 @@
             }
 
             // ══════════════════════════════════════
-            // VENTAS
+            // MANEJO DEL MODAL (VENTA Y EDICIÓN)
             // ══════════════════════════════════════
             function abrirModalVenta(ticketNumbers, isBlock = false) {
+                editingMode = false;
+                btnAnular.style.display = 'none';
+                confirmSellBtn.textContent = '✅ Confirmar venta';
+                modalTitle.innerHTML = `🎫 Vender Boleto <span id="modalTicketNumber">#${Array.isArray(ticketNumbers) ? ticketNumbers.length + ' boletos' : ticketNumbers}</span>`;
+
                 if (Array.isArray(ticketNumbers)) {
                     if (ticketNumbers.length === 0) {
                         alert('No hay boletos disponibles para vender.');
@@ -450,10 +753,43 @@
                     currentModalBlock = null;
                     modalTicketNumber.textContent = `#${ticketNumbers}`;
                 }
+
                 sellerSelect.value = '';
                 selectedPrice = 200;
                 document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
                 document.querySelector('.price-option[data-price="200"]').classList.add('selected');
+
+                modalOverlay.classList.add('active');
+                sellerSelect.focus();
+            }
+
+            function abrirModalEdicion(num) {
+                const t = tickets[num];
+                if (!t.sold) {
+                    // Si no está vendido, abrir modal de venta normal
+                    abrirModalVenta(num, false);
+                    return;
+                }
+
+                editingMode = true;
+                currentModalTicket = num;
+                currentModalBlock = null;
+                modalTicketNumber.textContent = `#${num}`;
+                modalTitle.innerHTML = `✏️ Editar Boleto <span id="modalTicketNumber">#${num}</span>`;
+
+                // Cargar datos actuales
+                sellerSelect.value = t.seller || '';
+                // Seleccionar precio
+                const price = t.price || 200;
+                document.querySelectorAll('.price-option').forEach(el => {
+                    el.classList.toggle('selected', parseInt(el.dataset.price) === price);
+                });
+                selectedPrice = price;
+
+                // Mostrar botón Anular
+                btnAnular.style.display = 'inline-flex';
+                confirmSellBtn.textContent = '💾 Actualizar venta';
+
                 modalOverlay.classList.add('active');
                 sellerSelect.focus();
             }
@@ -462,8 +798,13 @@
                 modalOverlay.classList.remove('active');
                 currentModalTicket = null;
                 currentModalBlock = null;
+                editingMode = false;
+                btnAnular.style.display = 'none';
             }
 
+            // ══════════════════════════════════════
+            // ACCIONES: VENTA, ACTUALIZACIÓN, ANULACIÓN
+            // ══════════════════════════════════════
             async function confirmarVenta() {
                 const seller = sellerSelect.value;
                 if (!seller) {
@@ -474,11 +815,6 @@
 
                 let ids = [];
                 if (currentModalTicket !== null) {
-                    if (tickets[currentModalTicket].sold) {
-                        alert('Este boleto ya está vendido.');
-                        cerrarModal();
-                        return;
-                    }
                     ids = [currentModalTicket];
                 } else if (currentModalBlock && currentModalBlock.length > 0) {
                     ids = currentModalBlock.filter(num => !tickets[num].sold);
@@ -487,6 +823,8 @@
                         cerrarModal();
                         return;
                     }
+                } else {
+                    return;
                 }
 
                 // Preparar actualización
@@ -503,26 +841,95 @@
                         .upsert(updates, { onConflict: 'id' });
 
                     if (error) throw error;
-
-                    // Si todo ok, cerramos modal
                     cerrarModal();
                 } catch (err) {
-                    console.error('Error al vender boletos:', err);
-                    // Mostramos el mensaje de error específico
+                    console.error('Error al vender/actualizar boletos:', err);
                     alert(`❌ Error al guardar la venta:\n${err.message || 'Error desconocido'}`);
-                    // No cerramos el modal para que el usuario pueda reintentar
                 }
             }
 
+            async function actualizarVenta() {
+                // Similar a confirmarVenta pero solo para un boleto
+                if (!editingMode || currentModalTicket === null) return;
+
+                const seller = sellerSelect.value;
+                if (!seller) {
+                    alert('Selecciona un vendedor.');
+                    return;
+                }
+                const price = selectedPrice;
+                const id = currentModalTicket;
+
+                try {
+                    const { error } = await supabase
+                        .from('tickets')
+                        .upsert({ id, sold: true, seller, price }, { onConflict: 'id' });
+
+                    if (error) throw error;
+                    cerrarModal();
+                } catch (err) {
+                    console.error('Error al actualizar:', err);
+                    alert(`❌ Error al actualizar:\n${err.message}`);
+                }
+            }
+
+            async function anularVenta() {
+                if (!editingMode || currentModalTicket === null) return;
+                const id = currentModalTicket;
+                if (!confirm(`¿Seguro que quieres anular la venta del boleto #${id}?`)) return;
+
+                try {
+                    const { error } = await supabase
+                        .from('tickets')
+                        .upsert({ id, sold: false, seller: '', price: 0 }, { onConflict: 'id' });
+
+                    if (error) throw error;
+                    cerrarModal();
+                } catch (err) {
+                    console.error('Error al anular:', err);
+                    alert(`❌ Error al anular la venta:\n${err.message}`);
+                }
+            }
+
+            // ══════════════════════════════════════
+            // EVENTOS DE BOTONES Y MODAL
+            // ══════════════════════════════════════
+            priceOptionsContainer.addEventListener('click', (e) => {
+                const option = e.target.closest('.price-option');
+                if (!option) return;
+                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedPrice = parseInt(option.dataset.price, 10);
+            });
+
+            cancelSellBtn.addEventListener('click', cerrarModal);
+            confirmSellBtn.addEventListener('click', () => {
+                if (editingMode) {
+                    actualizarVenta();
+                } else {
+                    confirmarVenta();
+                }
+            });
+            btnAnular.addEventListener('click', anularVenta);
+
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
+            modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
+
+            // ══════════════════════════════════════
+            // MANEJO DE CLIC EN BOLETO
+            // ══════════════════════════════════════
             function manejarClickBoleto(num) {
                 if (tickets[num].sold) {
-                    const t = tickets[num];
-                    alert(`Boleto #${num}\nVendido por: ${t.seller}\nPrecio: $${t.price}`);
+                    // Editar
+                    abrirModalEdicion(num);
                 } else {
                     abrirModalVenta(num, false);
                 }
             }
 
+            // ══════════════════════════════════════
+            // BOTONES PRINCIPALES
+            // ══════════════════════════════════════
             function venderPrimerosN(n) {
                 const disponibles = [];
                 for (let i = 1; i <= n; i++) {
@@ -544,7 +951,6 @@
                     alert('Todos los boletos están vendidos.');
                     return;
                 }
-                // Mezclar
                 for (let i = disponibles.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [disponibles[i], disponibles[j]] = [disponibles[j], disponibles[i]];
@@ -556,15 +962,9 @@
             async function reiniciarTodo() {
                 if (!confirm('¿Seguro que quieres reiniciar todas las ventas?')) return;
 
-                // Poner todos como no vendidos
                 const updates = [];
                 for (let i = 1; i <= TOTAL; i++) {
-                    updates.push({
-                        id: i,
-                        sold: false,
-                        seller: '',
-                        price: 0
-                    });
+                    updates.push({ id: i, sold: false, seller: '', price: 0 });
                 }
 
                 try {
@@ -583,26 +983,11 @@
                 liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
             }
 
-            // ══════════════════════════════════════
-            // EVENTOS DE BOTONES
-            // ══════════════════════════════════════
-            priceOptionsContainer.addEventListener('click', (e) => {
-                const option = e.target.closest('.price-option');
-                if (!option) return;
-                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedPrice = parseInt(option.dataset.price, 10);
-            });
-
-            cancelSellBtn.addEventListener('click', cerrarModal);
-            confirmSellBtn.addEventListener('click', confirmarVenta);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
-            modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
-
             document.getElementById('btnSell200').addEventListener('click', () => venderPrimerosN(200));
             document.getElementById('btnSell250').addEventListener('click', () => venderPrimerosN(250));
             document.getElementById('btnSellRandom').addEventListener('click', () => venderAleatoriosN(200));
             document.getElementById('btnResetAll').addEventListener('click', reiniciarTodo);
+            document.getElementById('btnRefresh').addEventListener('click', refrescarDatos);
 
             // ══════════════════════════════════════
             // ARRANQUE
@@ -611,6 +996,7 @@
                 construirGrid();
                 await cargarEstadoInicial();
                 suscribirCambiosEnVivo();
+                iniciarPolling(10000); // <-- Refresco automático cada 10s
                 actualizarReloj();
                 setInterval(actualizarReloj, 1000);
             })();
