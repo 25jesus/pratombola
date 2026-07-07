@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Venta de Boletos 1-300</title>
+    <title>Control de Venta de Boletos 1-300 | Registro de Vendedor y Precio</title>
     <style>
         :root {
             --bg: #0b0f14;
@@ -14,20 +14,17 @@
             --green-bright: #3fb950;
             --green-bg: #1a3a1f;
             --green-border: #2ea043;
-            --green-hover: #26b641;
             --gray-bg: #1c1c20;
             --gray-border: #3a3a3e;
-            --gray-hover: #2a2a30;
             --accent: #58a6ff;
+            --danger: #f85149;
             --card-radius: 8px;
-            --transition: 0.25s ease;
+            --transition: 0.2s ease;
+            --modal-bg: #1c2128;
+            --modal-overlay: rgba(0,0,0,0.7);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: var(--bg);
             font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
@@ -41,6 +38,7 @@
                 radial-gradient(ellipse at 20% 30%, rgba(63, 185, 80, 0.04) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 70%, rgba(63, 185, 80, 0.03) 0%, transparent 50%);
         }
+
         .dashboard {
             width: 100%;
             max-width: 1300px;
@@ -48,8 +46,9 @@
             border-radius: 20px;
             border: 1px solid var(--border);
             padding: 20px 24px 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
         }
+
         /* Header */
         .header {
             display: flex;
@@ -61,23 +60,26 @@
             padding-bottom: 14px;
             border-bottom: 1px solid var(--border);
         }
-        .header-left h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -0.3px;
+        .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; }
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 0.9rem;
         }
-        .total-badge {
+        .stat-item {
             background: #1a1f27;
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 0.85rem;
+            border-radius: 12px;
+            padding: 8px 16px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .total-badge .count {
-            font-size: 1.4rem;
+        .stat-item .label { color: #8b949e; font-size: 0.8rem; }
+        .stat-item .value {
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--green-bright);
             font-variant-numeric: tabular-nums;
@@ -86,6 +88,7 @@
             font-family: 'SF Mono', 'Consolas', monospace;
             font-size: 0.8rem;
             color: #7d8590;
+            margin-left: auto;
         }
 
         /* Controles */
@@ -111,89 +114,31 @@
             gap: 6px;
             user-select: none;
         }
-        .btn:hover {
-            background: #242b35;
-            border-color: #4a5568;
-            color: #fff;
-            transform: translateY(-1px);
-        }
-        .btn:active {
-            transform: scale(0.97);
-        }
-        .btn.accent {
-            background: #1a3a2a;
-            border-color: #2ea043;
-            color: #9fddb0;
-        }
-        .btn.accent:hover {
-            background: #1f4a2f;
-            border-color: #3fb950;
-            color: #fff;
-        }
-        .btn.danger {
-            background: #2d1a1a;
-            border-color: #5a2e2e;
-            color: #f0a0a0;
-        }
-        .btn.danger:hover {
-            background: #3d2020;
-            border-color: #7a3a3a;
-            color: #fff;
-        }
-        .separator {
-            width: 1px;
-            height: 24px;
-            background: #2d333b;
-            margin: 0 6px;
-        }
-        .legend {
-            display: flex;
-            gap: 16px;
-            font-size: 0.78rem;
-            color: #8b949e;
-            align-items: center;
-            margin-left: auto;
-        }
-        .legend span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            border: 1px solid transparent;
-        }
-        .legend-dot.green {
-            background: var(--green-bg);
-            border-color: var(--green-border);
-        }
-        .legend-dot.gray {
-            background: var(--gray-bg);
-            border-color: var(--gray-border);
-        }
+        .btn:hover { background: #242b35; border-color: #4a5568; color: #fff; transform: translateY(-1px); }
+        .btn:active { transform: scale(0.97); }
+        .btn.accent { background: #1a3a2a; border-color: #2ea043; color: #9fddb0; }
+        .btn.accent:hover { background: #1f4a2f; border-color: #3fb950; color: #fff; }
+        .btn.danger { background: #2d1a1a; border-color: #5a2e2e; color: #f0a0a0; }
+        .btn.danger:hover { background: #3d2020; border-color: #7a3a3a; color: #fff; }
+        .separator { width: 1px; height: 24px; background: #2d333b; margin: 0 6px; }
+        .legend { display: flex; gap: 16px; font-size: 0.78rem; color: #8b949e; align-items: center; margin-left: auto; }
+        .legend span { display: flex; align-items: center; gap: 5px; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid transparent; }
+        .legend-dot.green { background: var(--green-bg); border-color: var(--green-border); }
+        .legend-dot.gray { background: var(--gray-bg); border-color: var(--gray-border); }
 
-        /* Grid */
+        /* Grid de boletos */
         .ticket-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
             gap: 7px;
-            max-height: 60vh;
+            max-height: 55vh;
             overflow-y: auto;
             padding-right: 4px;
         }
-        .ticket-grid::-webkit-scrollbar {
-            width: 7px;
-        }
-        .ticket-grid::-webkit-scrollbar-track {
-            background: #0f1319;
-            border-radius: 10px;
-        }
-        .ticket-grid::-webkit-scrollbar-thumb {
-            background: #2a3039;
-            border-radius: 10px;
-        }
+        .ticket-grid::-webkit-scrollbar { width: 7px; }
+        .ticket-grid::-webkit-scrollbar-track { background: #0f1319; border-radius: 10px; }
+        .ticket-grid::-webkit-scrollbar-thumb { background: #2a3039; border-radius: 10px; }
 
         .ticket-cell {
             background: var(--gray-bg);
@@ -202,11 +147,7 @@
             padding: 8px 4px;
             text-align: center;
             cursor: pointer;
-            transition:
-                background var(--transition),
-                border-color var(--transition),
-                box-shadow var(--transition),
-                transform 0.2s;
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.2s;
             position: relative;
             overflow: hidden;
             min-height: 50px;
@@ -220,146 +161,145 @@
             font-size: 0.8rem;
             color: #6e7681;
         }
-        .ticket-cell::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: var(--card-radius);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
         .ticket-cell.sold {
             background: var(--green-bg);
             border-color: var(--green-border);
             color: #fff;
-            box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
+            box-shadow: 0 2px 10px rgba(63,185,80,0.3);
             animation: subtleGlow 3s ease-in-out infinite;
         }
-        .ticket-cell.sold::after {
-            background: radial-gradient(ellipse at center, rgba(63, 185, 80, 0.18) 0%, transparent 70%);
-            opacity: 1;
-        }
         @keyframes subtleGlow {
-            0%,
-            100% {
-                box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
-            }
-            50% {
-                box-shadow: 0 4px 20px rgba(63, 185, 80, 0.55);
-            }
+            0%,100%{ box-shadow: 0 2px 10px rgba(63,185,80,0.3); }
+            50%{ box-shadow: 0 4px 20px rgba(63,185,80,0.55); }
         }
-        .ticket-cell:hover {
-            transform: translateY(-2px);
-            z-index: 2;
-        }
-        .ticket-cell.sold:hover {
-            border-color: #4dda5a;
-            box-shadow: 0 6px 24px rgba(63, 185, 80, 0.6);
-        }
-        .ticket-cell.available:hover {
-            border-color: #5a5a62;
-            background: #25252b;
-            color: #aaa;
-        }
-        .ticket-number {
-            font-size: 0.8rem;
-            font-weight: 700;
-            z-index: 1;
-        }
-        .ticket-status {
-            font-size: 0.55rem;
-            z-index: 1;
-            font-weight: 500;
-            letter-spacing: 0.2px;
-        }
-        .ticket-cell.sold .ticket-status {
-            color: #b8e6c0;
-        }
-        .ticket-cell.available .ticket-status {
-            color: #555;
-        }
+        .ticket-cell:hover { transform: translateY(-2px); z-index: 2; }
+        .ticket-cell.sold:hover { border-color: #4dda5a; box-shadow: 0 6px 24px rgba(63,185,80,0.6); }
+        .ticket-cell.available:hover { border-color: #5a5a62; background: #25252b; color: #aaa; }
+        .ticket-number { font-size: 0.8rem; font-weight: 700; z-index: 1; }
+        .ticket-status { font-size: 0.55rem; z-index: 1; font-weight: 500; letter-spacing: 0.2px; }
+        .ticket-cell.sold .ticket-status { color: #b8e6c0; }
+        .ticket-cell.available .ticket-status { color: #555; }
 
-        /* Destello al vender */
-        .ticket-cell.flash {
-            animation: flashGreen 0.6s ease-out;
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay); display: flex; justify-content: center; align-items: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: opacity 0.25s ease, visibility 0.25s;
         }
-        @keyframes flashGreen {
-            0% {
-                filter: brightness(2.5);
-                box-shadow: 0 0 30px rgba(63, 185, 80, 0.9);
-            }
-            100% {
-                filter: brightness(1);
-            }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal {
+            background: var(--modal-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 24px; width: 90%; max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: var(--text);
         }
+        .modal h3 { margin-bottom: 16px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .modal label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #8b949e; }
+        .modal input[type="text"] {
+            width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid var(--border);
+            border-radius: 8px; color: #e6edf3; font-size: 0.9rem; margin-bottom: 14px; outline: none;
+        }
+        .modal input[type="text"]:focus { border-color: #58a6ff; }
+        .price-options { display: flex; gap: 12px; margin-bottom: 20px; }
+        .price-option {
+            flex: 1; text-align: center; background: #1c2129; border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s; font-weight: 600;
+        }
+        .price-option.selected { background: #1a3a2a; border-color: #3fb950; color: #fff; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-actions .btn { min-width: 80px; justify-content: center; }
 
-        @media (max-width: 768px) {
-            .ticket-grid {
-                grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
-                gap: 5px;
-            }
-            .ticket-cell {
-                min-height: 40px;
-                padding: 5px 2px;
-                font-size: 0.7rem;
-            }
-            .btn {
-                padding: 6px 10px;
-                font-size: 0.72rem;
-            }
+        /* Tooltip simple para ver detalles en boletos vendidos */
+        .ticket-cell[data-tooltip]:hover::after {
+            content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%;
+            transform: translateX(-50%); background: #1c2129; border: 1px solid var(--border);
+            padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap;
+            pointer-events: none; z-index: 3; color: #c9d1d9; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
     </style>
 </head>
 <body>
     <div class="dashboard">
-        <!-- Header -->
         <div class="header">
             <div class="header-left">
                 <h1>🎟️ Control de Boletos 1-300</h1>
             </div>
-            <div class="total-badge">
-                <span>🎯 Vendidos:</span>
-                <span class="count" id="soldCount">0</span>
-                <span>/ 300</span>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="label">🎯 Vendidos</span>
+                    <span class="value" id="soldCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">💰 Ganancia Total</span>
+                    <span class="value" id="totalRevenue">$0</span>
+                </div>
             </div>
             <div class="timestamp" id="liveTimestamp">--:--:--</div>
         </div>
 
-        <!-- Controles -->
         <div class="controls">
             <button class="btn accent" id="btnSell200">🎫 Vender primeros 200</button>
             <button class="btn accent" id="btnSell250">🎫 Vender primeros 250</button>
             <div class="separator"></div>
             <button class="btn" id="btnSellRandom">🎲 Vender 200 aleatorios</button>
-            <button class="btn danger" id="btnResetAll">🧹 Reiniciar todos</button>
+            <button class="btn danger" id="btnResetAll">🧹 Reiniciar todo</button>
             <div class="legend">
                 <span><span class="legend-dot green"></span> Vendido</span>
                 <span><span class="legend-dot gray"></span> Disponible</span>
             </div>
         </div>
 
-        <!-- Grid -->
         <div class="ticket-grid" id="ticketGrid"></div>
+    </div>
+
+    <!-- Modal de venta -->
+    <div class="modal-overlay" id="sellModal">
+        <div class="modal">
+            <h3>🎫 Vender Boleto <span id="modalTicketNumber">#0</span></h3>
+            <label for="sellerName">👤 Nombre del vendedor</label>
+            <input type="text" id="sellerName" placeholder="Ej. Juan Pérez" autocomplete="off">
+            <label>💵 Precio de venta</label>
+            <div class="price-options" id="priceOptions">
+                <div class="price-option" data-price="200">$200</div>
+                <div class="price-option" data-price="250">$250</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelSell">Cancelar</button>
+                <button class="btn accent" id="confirmSell">✅ Confirmar venta</button>
+            </div>
+        </div>
     </div>
 
     <script>
         (function() {
             const TOTAL = 300;
-            const STORAGE_KEY = 'ticketSales300';
+            const STORAGE_KEY = 'ticketSalesFull';
 
-            // Estado: true = vendido, false = disponible
-            let soldStatus = new Array(TOTAL + 1).fill(false); // índice 1..300
+            // Estado extendido: cada boleto { sold, seller, price }
+            let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
+
+            // Variables del modal
+            let currentModalTicket = null;       // número de boleto individual
+            let currentModalBlock = null;        // array de números si es venta masiva
+            let selectedPrice = 200;
 
             const gridEl = document.getElementById('ticketGrid');
             const soldCountEl = document.getElementById('soldCount');
+            const totalRevenueEl = document.getElementById('totalRevenue');
             const liveTimestampEl = document.getElementById('liveTimestamp');
-            const cellElements = {}; // { number: { container, statusEl } }
+            const cellElements = {};
+
+            // Modal elements
+            const modalOverlay = document.getElementById('sellModal');
+            const modalTicketNumber = document.getElementById('modalTicketNumber');
+            const sellerNameInput = document.getElementById('sellerName');
+            const priceOptionsContainer = document.getElementById('priceOptions');
+            const cancelSellBtn = document.getElementById('cancelSell');
+            const confirmSellBtn = document.getElementById('confirmSell');
 
             // ============ LOCAL STORAGE ============
             function saveState() {
                 const data = {
-                    sold: soldStatus.slice(1), // guardar solo índices 1-300 como array
+                    tickets: tickets.slice(1).map(t => ({ sold: t.sold, seller: t.seller, price: t.price })),
                     lastUpdate: Date.now()
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -370,16 +310,20 @@
                 if (raw) {
                     try {
                         const data = JSON.parse(raw);
-                        if (data.sold && Array.isArray(data.sold) && data.sold.length === TOTAL) {
+                        if (data.tickets && Array.isArray(data.tickets) && data.tickets.length === TOTAL) {
                             for (let i = 0; i < TOTAL; i++) {
-                                soldStatus[i + 1] = !!data.sold[i];
+                                tickets[i+1] = {
+                                    sold: !!data.tickets[i].sold,
+                                    seller: data.tickets[i].seller || '',
+                                    price: data.tickets[i].price || 0
+                                };
                             }
                             return true;
                         }
-                    } catch (e) {}
+                    } catch(e) {}
                 }
-                // Estado inicial: primeros 50 vendidos como demo, o todos disponibles
-                for (let i = 1; i <= TOTAL; i++) soldStatus[i] = false;
+                // Inicial: todos disponibles
+                for (let i = 1; i <= TOTAL; i++) tickets[i] = { sold: false, seller: '', price: 0 };
                 return false;
             }
 
@@ -390,149 +334,226 @@
                     const cell = document.createElement('div');
                     cell.className = 'ticket-cell available';
                     cell.setAttribute('data-ticket', num);
-                    cell.title = `Boleto #${num} — Disponible`;
                     cell.innerHTML = `
-                            <span class="ticket-number">#${num}</span>
-                            <span class="ticket-status" data-role="status">Disp.</span>
-                        `;
-                    cell.addEventListener('click', () => toggleTicket(num));
+                        <span class="ticket-number">#${num}</span>
+                        <span class="ticket-status" data-role="status">Disp.</span>
+                    `;
+                    cell.addEventListener('click', () => onTicketClick(num));
                     gridEl.appendChild(cell);
                     cellElements[num] = {
                         container: cell,
-                        statusEl: cell.querySelector('[data-role="status"]'),
+                        statusEl: cell.querySelector('[data-role="status"]')
                     };
                 }
             }
 
-            // ============ ACTUALIZAR UNA CELDA ============
-            function updateCell(num, flash = false) {
+            function updateCell(num) {
                 const { container, statusEl } = cellElements[num];
-                const isSold = soldStatus[num];
-                if (isSold) {
+                const t = tickets[num];
+                if (t.sold) {
                     container.classList.add('sold');
                     container.classList.remove('available');
-                    statusEl.textContent = 'Vendido';
-                    container.title = `Boleto #${num} — Vendido`;
+                    statusEl.textContent = `$${t.price}`;
+                    container.setAttribute('data-tooltip', `Vendido por ${t.seller} a $${t.price}`);
                 } else {
                     container.classList.remove('sold');
                     container.classList.add('available');
                     statusEl.textContent = 'Disp.';
-                    container.title = `Boleto #${num} — Disponible`;
-                }
-                if (flash) {
-                    container.classList.remove('flash');
-                    void container.offsetWidth;
-                    container.classList.add('flash');
-                    setTimeout(() => container.classList.remove('flash'), 650);
+                    container.removeAttribute('data-tooltip');
                 }
             }
 
             function refreshAllCells() {
-                for (let num = 1; num <= TOTAL; num++) {
-                    updateCell(num, false);
-                }
+                for (let num = 1; num <= TOTAL; num++) updateCell(num);
             }
 
-            function updateSoldCounter() {
-                const count = soldStatus.filter(Boolean).length;
-                soldCountEl.textContent = count;
-            }
-
-            // ============ TOGGLE INDIVIDUAL ============
-            function toggleTicket(num) {
-                soldStatus[num] = !soldStatus[num];
-                updateCell(num, true);
-                updateSoldCounter();
-                saveState();
-                updateTimestamp();
-            }
-
-            // ============ ACCIONES MASIVAS ============
-            function sellFirstN(n) {
-                for (let i = 1; i <= n; i++) {
-                    if (!soldStatus[i]) {
-                        soldStatus[i] = true;
-                        updateCell(i, true);
+            // ============ TOTALS ============
+            function updateTotals() {
+                let soldCount = 0, totalRev = 0;
+                for (let i = 1; i <= TOTAL; i++) {
+                    if (tickets[i].sold) {
+                        soldCount++;
+                        totalRev += tickets[i].price;
                     }
                 }
-                // También podemos asegurar que los demás no cambien
-                updateSoldCounter();
-                saveState();
-                updateTimestamp();
+                soldCountEl.textContent = soldCount;
+                totalRevenueEl.textContent = `$${totalRev.toLocaleString()}`;
             }
 
-            function sellRandomN(n) {
-                // Seleccionar n boletos aleatorios (sin repetir) y venderlos
-                const allIndices = [];
-                for (let i = 1; i <= TOTAL; i++) {
-                    if (!soldStatus[i]) allIndices.push(i);
+            // ============ MODAL LOGIC ============
+            function openSellModal(ticketNumbers, isBlock = false) {
+                // ticketNumbers puede ser un número (venta individual) o un array (bloque)
+                if (Array.isArray(ticketNumbers)) {
+                    if (ticketNumbers.length === 0) {
+                        alert('No hay boletos disponibles para vender en esta selección.');
+                        return;
+                    }
+                    currentModalTicket = null;
+                    currentModalBlock = ticketNumbers;
+                    modalTicketNumber.textContent = `${ticketNumbers.length} boletos`;
+                } else {
+                    currentModalTicket = ticketNumbers;
+                    currentModalBlock = null;
+                    modalTicketNumber.textContent = `#${ticketNumbers}`;
                 }
-                // Mezclar
-                for (let i = allIndices.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
+
+                sellerNameInput.value = '';
+                selectedPrice = 200;
+                // Resetear selección de precio
+                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
+                const defaultOption = document.querySelector('.price-option[data-price="200"]');
+                if (defaultOption) defaultOption.classList.add('selected');
+                modalOverlay.classList.add('active');
+                sellerNameInput.focus();
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('active');
+                currentModalTicket = null;
+                currentModalBlock = null;
+            }
+
+            function confirmSale() {
+                const seller = sellerNameInput.value.trim();
+                if (!seller) {
+                    alert('Por favor ingresa el nombre del vendedor.');
+                    return;
                 }
-                const toSell = allIndices.slice(0, Math.min(n, allIndices.length));
-                for (const num of toSell) {
-                    soldStatus[num] = true;
-                    updateCell(num, true);
+                const price = selectedPrice;
+
+                // Determinar boletos a vender
+                let targets = [];
+                if (currentModalTicket !== null) {
+                    if (tickets[currentModalTicket].sold) {
+                        alert('Este boleto ya está vendido.');
+                        closeModal();
+                        return;
+                    }
+                    targets = [currentModalTicket];
+                } else if (currentModalBlock && currentModalBlock.length > 0) {
+                    targets = currentModalBlock.filter(num => !tickets[num].sold);
+                    if (targets.length === 0) {
+                        alert('Todos los boletos seleccionados ya están vendidos.');
+                        closeModal();
+                        return;
+                    }
                 }
-                updateSoldCounter();
+
+                // Realizar venta
+                for (const num of targets) {
+                    tickets[num].sold = true;
+                    tickets[num].seller = seller;
+                    tickets[num].price = price;
+                    updateCell(num);
+                }
+
+                updateTotals();
                 saveState();
                 updateTimestamp();
+                closeModal();
+            }
+
+            // ============ EVENT HANDLERS ============
+            function onTicketClick(num) {
+                if (tickets[num].sold) {
+                    // Mostrar detalles
+                    const t = tickets[num];
+                    alert(`Boleto #${num}\nVendido por: ${t.seller}\nPrecio: $${t.price}`);
+                } else {
+                    openSellModal(num, false);
+                }
+            }
+
+            // Venta masiva: primeros N
+            function sellFirstN(n) {
+                const available = [];
+                for (let i = 1; i <= n; i++) {
+                    if (!tickets[i].sold) available.push(i);
+                }
+                if (available.length === 0) {
+                    alert(`Todos los boletos del 1 al ${n} ya están vendidos.`);
+                    return;
+                }
+                openSellModal(available, true);
+            }
+
+            // Venta aleatoria de N boletos
+            function sellRandomN(n) {
+                const available = [];
+                for (let i = 1; i <= TOTAL; i++) {
+                    if (!tickets[i].sold) available.push(i);
+                }
+                if (available.length === 0) {
+                    alert('Todos los boletos están vendidos.');
+                    return;
+                }
+                // Mezclar y tomar n
+                for (let i = available.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [available[i], available[j]] = [available[j], available[i]];
+                }
+                const selected = available.slice(0, Math.min(n, available.length));
+                openSellModal(selected, true);
             }
 
             function resetAll() {
-                for (let i = 1; i <= TOTAL; i++) {
-                    if (soldStatus[i]) {
-                        soldStatus[i] = false;
-                        updateCell(i, true);
+                if (confirm('¿Estás seguro de reiniciar todas las ventas? Esta acción no se puede deshacer.')) {
+                    for (let i = 1; i <= TOTAL; i++) {
+                        tickets[i] = { sold: false, seller: '', price: 0 };
+                        updateCell(i);
                     }
+                    updateTotals();
+                    saveState();
+                    updateTimestamp();
                 }
-                updateSoldCounter();
-                saveState();
-                updateTimestamp();
             }
 
             function updateTimestamp() {
                 liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
             }
 
-            // ============ INICIALIZAR ============
-            function init() {
-                const loaded = loadState();
-                buildGrid();
-                refreshAllCells();
-                updateSoldCounter();
-                updateTimestamp();
-                if (!loaded) {
-                    // Estado inicial: vender primeros 50 como ejemplo
-                    for (let i = 1; i <= 50; i++) {
-                        soldStatus[i] = true;
-                        updateCell(i, false);
-                    }
-                    updateSoldCounter();
-                    saveState();
-                }
-                // Actualizar timestamp periódicamente
-                setInterval(updateTimestamp, 1000);
-            }
+            // ============ EVENT LISTENERS ============
+            // Precio seleccionado
+            priceOptionsContainer.addEventListener('click', (e) => {
+                const option = e.target.closest('.price-option');
+                if (!option) return;
+                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedPrice = parseInt(option.dataset.price, 10);
+            });
 
-            // ============ EVENTOS ============
-            document.getElementById('btnSell200').addEventListener('click', () => sellFirstN(200));
-            document.getElementById('btnSell250').addEventListener('click', () => sellFirstN(250));
-            document.getElementById('btnSellRandom').addEventListener('click', () => sellRandomN(200));
-            document.getElementById('btnResetAll').addEventListener('click', () => {
-                if (confirm('¿Estás seguro de reiniciar todos los boletos a "Disponible"?')) {
-                    resetAll();
+            cancelSellBtn.addEventListener('click', closeModal);
+            confirmSellBtn.addEventListener('click', confirmSale);
+
+            // Cerrar modal con Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+                    closeModal();
                 }
             });
 
-            // ============ ARRANCAR ============
+            // Cerrar modal al hacer clic fuera
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
+            document.getElementById('btnSell200').addEventListener('click', () => sellFirstN(200));
+            document.getElementById('btnSell250').addEventListener('click', () => sellFirstN(250));
+            document.getElementById('btnSellRandom').addEventListener('click', () => sellRandomN(200));
+            document.getElementById('btnResetAll').addEventListener('click', resetAll);
+
+            // ============ INICIALIZACIÓN ============
+            function init() {
+                loadState();
+                buildGrid();
+                refreshAllCells();
+                updateTotals();
+                updateTimestamp();
+                setInterval(updateTimestamp, 1000);
+            }
+
             init();
-            console.log('✅ Panel de control de boletos 1-300 listo.');
-            console.log('   🟢 Verde = Vendido  |  ⚫ Gris = Disponible');
-            console.log('   💾 Los cambios se guardan automáticamente.');
+            console.log('✅ Panel de control con registro de vendedor y precio activo.');
         })();
     </script>
 </body>
