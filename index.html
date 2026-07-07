@@ -7,7 +7,7 @@
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* (estilos iguales, no los cambio) */
+        /* Estilos base (se mantienen igual) */
         :root {
             --bg: #0b0f14;
             --panel-bg: #131920;
@@ -84,7 +84,49 @@
         .btn.danger { background: #2d1a1a; border-color: #5a2e2e; color: #f0a0a0; }
         .btn.danger:hover { background: #3d2020; border-color: #7a3a3a; color: #fff; }
         .separator { width: 1px; height: 24px; background: #2d333b; margin: 0 6px; }
-        .legend { display: flex; gap: 16px; font-size: 0.78rem; color: #8b949e; align-items: center; margin-left: auto; }
+
+        /* --- NUEVO: Estilos del indicador de conexión --- */
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            color: #8b949e;
+            margin-left: auto;
+            padding: 4px 12px;
+            background: #1a1f27;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .status-dot.connecting {
+            background: #8b949e;
+            box-shadow: 0 0 6px #8b949e;
+            animation: pulse-dot 1s infinite;
+        }
+        .status-dot.online {
+            background: #3fb950;
+            box-shadow: 0 0 10px rgba(63,185,80,0.5);
+        }
+        .status-dot.offline {
+            background: #f85149;
+            box-shadow: 0 0 10px rgba(248,81,73,0.5);
+        }
+        @keyframes pulse-dot {
+            0% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0.4; transform: scale(0.9); }
+        }
+        /* ------------------------------------------- */
+
+        .legend { display: flex; gap: 16px; font-size: 0.78rem; color: #8b949e; align-items: center; }
         .legend span { display: flex; align-items: center; gap: 5px; }
         .legend-dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid transparent; }
         .legend-dot.green { background: var(--green-bg); border-color: var(--green-border); }
@@ -178,6 +220,13 @@
             <div class="separator"></div>
             <button class="btn" id="btnSellRandom">🎲 Vender 200 aleatorios</button>
             <button class="btn danger" id="btnResetAll">🧹 Reiniciar todo</button>
+
+            <!-- NUEVO: Indicador de conexión a BD -->
+            <div class="status-container" id="statusContainer" title="Estado de la conexión con Supabase">
+                <span class="status-dot connecting" id="dbStatus"></span>
+                <span id="statusText">Conectando...</span>
+            </div>
+
             <div class="legend">
                 <span><span class="legend-dot green"></span> Vendido</span>
                 <span><span class="legend-dot gray"></span> Disponible</span>
@@ -214,7 +263,7 @@
     <script>
         (function() {
             // ══════════════════════════════════════
-            // CONFIGURACIÓN DE SUPABASE (ACTUALIZADA)
+            // CONFIGURACIÓN DE SUPABASE
             // ══════════════════════════════════════
             const SUPABASE_URL = "https://zavonkfpunwwqjliojtb.supabase.co";
             const SUPABASE_ANON_KEY = "sb_publishable_MEkptp0YhHcsTLDPoIl0Nw_s3kMyYo9";
@@ -235,6 +284,10 @@
             const liveTimestampEl = document.getElementById('liveTimestamp');
             const cellElements = {};
 
+            // Elementos del indicador de conexión
+            const statusDot = document.getElementById('dbStatus');
+            const statusText = document.getElementById('statusText');
+
             const modalOverlay = document.getElementById('sellModal');
             const modalTicketNumber = document.getElementById('modalTicketNumber');
             const sellerSelect = document.getElementById('sellerSelect');
@@ -243,31 +296,56 @@
             const confirmSellBtn = document.getElementById('confirmSell');
 
             // ══════════════════════════════════════
+            // FUNCIONES DE ESTADO DE CONEXIÓN
+            // ══════════════════════════════════════
+            function setStatusOnline() {
+                statusDot.className = 'status-dot online';
+                statusText.textContent = 'BD Conectada';
+                statusDot.title = 'Conexión exitosa y tiempo real activo';
+            }
+
+            function setStatusOffline(errorMsg) {
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = 'BD Desconectada';
+                statusDot.title = errorMsg || 'Error de conexión';
+            }
+
+            function setStatusConnecting() {
+                statusDot.className = 'status-dot connecting';
+                statusText.textContent = 'Conectando...';
+                statusDot.title = 'Estableciendo conexión...';
+            }
+
+            // ══════════════════════════════════════
             // INICIALIZACIÓN DE LA BASE DE DATOS
             // ══════════════════════════════════════
             async function cargarEstadoInicial() {
-                const { data, error } = await supabase
-                    .from('tickets')
-                    .select('*')
-                    .order('id', { ascending: true });
+                setStatusConnecting();
+                try {
+                    const { data, error } = await supabase
+                        .from('tickets')
+                        .select('*')
+                        .order('id', { ascending: true });
 
-                if (error) {
-                    console.error('Error al cargar los boletos:', error);
-                    return;
-                }
+                    if (error) throw error;
 
-                if (data && data.length === TOTAL) {
-                    for (let i = 0; i < TOTAL; i++) {
-                        const row = data[i];
-                        tickets[row.id] = {
-                            sold: row.sold,
-                            seller: row.seller || '',
-                            price: row.price || 0
-                        };
+                    if (data && data.length === TOTAL) {
+                        for (let i = 0; i < TOTAL; i++) {
+                            const row = data[i];
+                            tickets[row.id] = {
+                                sold: row.sold,
+                                seller: row.seller || '',
+                                price: row.price || 0
+                            };
+                        }
                     }
+                    refrescarTodasLasCeldas();
+                    actualizarTotales();
+                    setStatusOnline();
+                } catch (err) {
+                    console.error('Error al cargar los boletos:', err);
+                    setStatusOffline(err.message || 'Error desconocido al cargar datos');
                 }
-                refrescarTodasLasCeldas();
-                actualizarTotales();
             }
 
             // ══════════════════════════════════════
@@ -280,7 +358,6 @@
                         'postgres_changes',
                         { event: '*', schema: 'public', table: 'tickets' },
                         (payload) => {
-                            // payload.new contiene la fila modificada
                             if (payload.new && payload.new.id) {
                                 const id = payload.new.id;
                                 tickets[id] = {
@@ -293,7 +370,13 @@
                             }
                         }
                     )
-                    .subscribe();
+                    .subscribe((status, err) => {
+                        if (status === 'SUBSCRIBED') {
+                            setStatusOnline();
+                        } else if (status === 'CHANNEL_ERROR') {
+                            setStatusOffline(err?.message || 'Error en la suscripción en vivo');
+                        }
+                    });
             }
 
             // ══════════════════════════════════════
@@ -406,7 +489,7 @@
                     }
                 }
 
-                // Actualizar en Supabase (upsert)
+                // Preparar actualización
                 const updates = ids.map(id => ({
                     id: id,
                     sold: true,
@@ -414,16 +497,21 @@
                     price: price
                 }));
 
-                const { error } = await supabase
-                    .from('tickets')
-                    .upsert(updates, { onConflict: 'id' });
+                try {
+                    const { error } = await supabase
+                        .from('tickets')
+                        .upsert(updates, { onConflict: 'id' });
 
-                if (error) {
-                    console.error('Error al vender boletos:', error);
-                    alert('Hubo un error al guardar la venta.');
+                    if (error) throw error;
+
+                    // Si todo ok, cerramos modal
+                    cerrarModal();
+                } catch (err) {
+                    console.error('Error al vender boletos:', err);
+                    // Mostramos el mensaje de error específico
+                    alert(`❌ Error al guardar la venta:\n${err.message || 'Error desconocido'}`);
+                    // No cerramos el modal para que el usuario pueda reintentar
                 }
-
-                cerrarModal();
             }
 
             function manejarClickBoleto(num) {
@@ -479,13 +567,15 @@
                     });
                 }
 
-                const { error } = await supabase
-                    .from('tickets')
-                    .upsert(updates, { onConflict: 'id' });
+                try {
+                    const { error } = await supabase
+                        .from('tickets')
+                        .upsert(updates, { onConflict: 'id' });
 
-                if (error) {
-                    console.error('Error al reiniciar:', error);
-                    alert('Error al reiniciar las ventas.');
+                    if (error) throw error;
+                } catch (err) {
+                    console.error('Error al reiniciar:', err);
+                    alert(`❌ Error al reiniciar las ventas:\n${err.message || 'Error desconocido'}`);
                 }
             }
 
