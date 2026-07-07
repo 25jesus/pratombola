@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Monitoreo en Vivo</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --panel-bg: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-secondary: #8b949e;
+            --green-bright: #3fb950;
+            --green-bg: #1a3a1f;
+            --green-border: #2ea043;
+            --gray-bg: #1c1c1e;
+            --gray-border: #3a3a3d;
+            --red-pulse: #ff6b6b;
+            --card-radius: 14px;
+            --transition-speed: 0.5s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-image:
+                radial-gradient(ellipse at 30% 20%, rgba(63, 185, 80, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 60%, rgba(63, 185, 80, 0.03) 0%, transparent 60%);
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--panel-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 28px 30px 32px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+        }
+
+        /* ========= HEADER ========= */
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-left h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text);
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(63, 185, 80, 0.12);
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(63, 185, 80, 0.3);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            color: var(--green-bright);
+            text-transform: uppercase;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green-bright);
+            animation: pulse 1.2s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(63, 185, 80, 0.7);
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.35;
+                transform: scale(1.7);
+            }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .update-counter {
+            background: #1a1f27;
+            padding: 7px 13px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 0.82rem;
+            color: #c9d1d9;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .timestamp {
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+
+        /* ========= LEYENDA ========= */
+        .legend {
+            display: flex;
+            gap: 22px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            flex-shrink: 0;
+        }
+        .legend-swatch.green {
+            background: var(--green-bg);
+            border-color: var(--green-border);
+        }
+        .legend-swatch.gray {
+            background: var(--gray-bg);
+            border-color: var(--gray-border);
+        }
+
+        /* ========= GRID DE CELDAS ========= */
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .sensor-cell {
+            background: var(--gray-bg);
+            border: 2px solid var(--gray-border);
+            border-radius: var(--card-radius);
+            padding: 18px 14px 16px;
+            text-align: center;
+            cursor: default;
+            transition:
+                background var(--transition-speed) ease,
+                border-color var(--transition-speed) ease,
+                box-shadow var(--transition-speed) ease,
+                transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .sensor-cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: var(--card-radius);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Estado: CON DATOS (verde) */
+        .sensor-cell.active {
+            background: var(--green-bg);
+            border-color: var(--green-border);
+            box-shadow:
+                0 4px 18px rgba(63, 185, 80, 0.25),
+                0 0 0 1px rgba(63, 185, 80, 0.1) inset;
+            animation: glowPulse 2.5s ease-in-out infinite;
+        }
+
+        .sensor-cell.active::before {
+            background: radial-gradient(ellipse at center,
+                    rgba(63, 185, 80, 0.18) 0%,
+                    transparent 70%);
+            opacity: 1;
+        }
+
+        @keyframes glowPulse {
+            0%,
+            100% {
+                box-shadow: 0 4px 18px rgba(63, 185, 80, 0.25), 0 0 0 1px rgba(63, 185, 80, 0.1) inset;
+            }
+            50% {
+                box-shadow: 0 6px 28px rgba(63, 185, 80, 0.45), 0 0 0 1px rgba(63, 185, 80, 0.2) inset;
+            }
+        }
+
+        /* Estado: SIN DATOS (gris) */
+        .sensor-cell.inactive {
+            background: #1a1a1d;
+            border-color: #3a3a3e;
+            box-shadow: none;
+            animation: none;
+        }
+        .sensor-cell.inactive::before {
+            opacity: 0;
+        }
+
+        /* Efecto hover sutil */
+        .sensor-cell:hover {
+            transform: translateY(-3px);
+            z-index: 2;
+        }
+        .sensor-cell.active:hover {
+            box-shadow: 0 10px 32px rgba(63, 185, 80, 0.4), 0 0 0 1px rgba(63, 185, 80, 0.25) inset;
+        }
+        .sensor-cell.inactive:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+            border-color: #555;
+        }
+
+        /* Contenido de la celda */
+        .cell-icon {
+            font-size: 1.8rem;
+            z-index: 1;
+            transition: transform 0.3s ease;
+            line-height: 1;
+        }
+        .sensor-cell.active .cell-icon {
+            animation: bounceIcon 0.5s ease-out;
+        }
+        @keyframes bounceIcon {
+            0% {
+                transform: scale(0.6);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.15);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cell-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            z-index: 1;
+            color: #b0b8c1;
+            transition: color 0.4s ease;
+        }
+        .sensor-cell.active .cell-label {
+            color: #d2f0d6;
+        }
+        .sensor-cell.inactive .cell-label {
+            color: #6e6e78;
+        }
+
+        .cell-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            z-index: 1;
+            letter-spacing: -0.5px;
+            transition: all 0.4s ease;
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+        }
+        .sensor-cell.active .cell-value {
+            color: #ffffff;
+        }
+        .sensor-cell.inactive .cell-value {
+            color: #55555c;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0;
+        }
+
+        .cell-unit {
+            font-size: 0.7rem;
+            font-weight: 500;
+            z-index: 1;
+            color: #7d8590;
+            letter-spacing: 0.3px;
+            transition: color 0.4s ease;
+        }
+        .sensor-cell.active .cell-unit {
+            color: #8ec894;
+        }
+        .sensor-cell.inactive .cell-unit {
+            color: #4a4a52;
+        }
+
+        /* Destello al recibir dato nuevo */
+        .sensor-cell.flash-update {
+            animation: flashGreen 0.7s ease-out;
+        }
+        @keyframes flashGreen {
+            0% {
+                filter: brightness(2.2);
+                box-shadow: 0 0 40px rgba(63, 185, 80, 0.9), 0 0 80px rgba(63, 185, 80, 0.5);
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+
+        /* ========= RESPONSIVE ========= */
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 18px 14px 20px;
+                border-radius: 14px;
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .sensor-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+            .sensor-cell {
+                padding: 14px 8px 12px;
+                min-height: 100px;
+                border-radius: 12px;
+            }
+            .cell-value {
+                font-size: 1.3rem;
+            }
+            .header-left h1 {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .sensor-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .sensor-cell {
+                min-height: 85px;
+                padding: 10px 6px 8px;
+                border-radius: 10px;
+            }
+            .cell-value {
+                font-size: 1.1rem;
+            }
+            .cell-label {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <!-- HEADER -->
+        <div class="dashboard-header">
+            <div class="header-left">
+                <h1>📡 Panel de Monitoreo</h1>
+                <div class="live-indicator">
+                    <span class="pulse-dot"></span> EN VIVO
+                </div>
+            </div>
+            <div class="header-right">
+                <span>Actualizaciones:</span>
+                <span class="update-counter" id="updateCounter">0</span>
+                <span class="timestamp" id="liveTimestamp">--:--:--</span>
+            </div>
+        </div>
+
+        <!-- LEYENDA -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-swatch green"></div>
+                <span>Con datos (verde)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-swatch gray"></div>
+                <span>Sin datos / vacío (gris)</span>
+            </div>
+        </div>
+
+        <!-- GRID DE SENSORES -->
+        <div class="sensor-grid" id="sensorGrid">
+            <!-- Las celdas se generan dinámicamente con JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ============ CONFIGURACIÓN ============
+            const UPDATE_INTERVAL_MS = 2200; // Cada 2.2 segundos se actualizan los datos
+            const PROBABILITY_HAS_DATA = 0.65; // 65% de probabilidad de que una celda tenga dato
+
+            // Definición de los sensores/estaciones
+            const sensorDefinitions = [
+                { id: 'temp-1', label: 'Temp. Norte', icon: '🌡️', unit: '°C', min: 18, max: 38, decimals: 1 },
+                { id: 'temp-2', label: 'Temp. Sur', icon: '🌡️', unit: '°C', min: 16, max: 40, decimals: 1 },
+                { id: 'hum-1', label: 'Humedad A', icon: '💧', unit: '%', min: 30, max: 95, decimals: 0 },
+                { id: 'hum-2', label: 'Humedad B', icon: '💧', unit: '%', min: 25, max: 90, decimals: 0 },
+                { id: 'pres-1', label: 'Presión 1', icon: '🌀', unit: 'hPa', min: 980, max: 1040, decimals: 1 },
+                { id: 'pres-2', label: 'Presión 2', icon: '🌀', unit: 'hPa', min: 975, max: 1035, decimals: 1 },
+                { id: 'volt-1', label: 'Voltaje L1', icon: '⚡', unit: 'V', min: 210, max: 245, decimals: 1 },
+                { id: 'volt-2', label: 'Voltaje L2', icon: '⚡', unit: 'V', min: 205, max: 250, decimals: 1 },
+                { id: 'flow-1', label: 'Flujo A', icon: '💨', unit: 'L/min', min: 2, max: 18, decimals: 1 },
+                { id: 'flow-2', label: 'Flujo B', icon: '💨', unit: 'L/min', min: 1, max: 20, decimals: 1 },
+                { id: 'vib-1', label: 'Vibración X', icon: '📳', unit: 'mm/s', min: 0.5, max: 8, decimals: 2 },
+                { id: 'vib-2', label: 'Vibración Y', icon: '📳', unit: 'mm/s', min: 0.3, max: 7, decimals: 2 },
+            ];
+
+            // Estado actual de cada sensor: { value: number|null, lastUpdate: timestamp }
+            const sensorStates = {};
+            sensorDefinitions.forEach(def => {
+                sensorStates[def.id] = {
+                    value: null,
+                    lastUpdate: null,
+                    previousValue: null, // para detectar cambios
+                };
+            });
+
+            let updateCount = 0;
+            const gridEl = document.getElementById('sensorGrid');
+            const updateCounterEl = document.getElementById('updateCounter');
+            const liveTimestampEl = document.getElementById('liveTimestamp');
+
+            // Referencias a los elementos DOM de cada celda (para actualización rápida)
+            const cellElements = {}; // { id: { container, valueEl, unitEl } }
+
+            // ============ CONSTRUIR LA CUADRÍCULA ============
+            function buildGrid() {
+                gridEl.innerHTML = '';
+                sensorDefinitions.forEach(def => {
+                    const cell = document.createElement('div');
+                    cell.className = 'sensor-cell inactive';
+                    cell.setAttribute('data-sensor-id', def.id);
+                    cell.title = `${def.label} — Sin datos`;
+
+                    cell.innerHTML = `
+                            <span class="cell-icon">${def.icon}</span>
+                            <span class="cell-label">${def.label}</span>
+                            <span class="cell-value" data-role="value">—</span>
+                            <span class="cell-unit" data-role="unit">${def.unit}</span>
+                        `;
+
+                    gridEl.appendChild(cell);
+
+                    cellElements[def.id] = {
+                        container: cell,
+                        valueEl: cell.querySelector('[data-role="value"]'),
+                        unitEl: cell.querySelector('[data-role="unit"]'),
+                    };
+                });
+            }
+
+            // ============ GENERAR VALOR ALEATORIO ============
+            function generateRandomValue(def) {
+                const range = def.max - def.min;
+                let raw = Math.random() * range + def.min;
+                // Redondear según decimals
+                const factor = Math.pow(10, def.decimals);
+                raw = Math.round(raw * factor) / factor;
+                // Asegurar dentro del rango
+                return Math.min(def.max, Math.max(def.min, raw));
+            }
+
+            // ============ ACTUALIZAR DATOS ============
+            function updateAllSensors() {
+                const now = new Date();
+                updateCount++;
+                updateCounterEl.textContent = updateCount;
+                liveTimestampEl.textContent = now.toLocaleTimeString('es-ES', { hour12: false });
+
+                sensorDefinitions.forEach(def => {
+                    const state = sensorStates[def.id];
+                    const hasData = Math.random() < PROBABILITY_HAS_DATA;
+
+                    let newValue = null;
+                    if (hasData) {
+                        newValue = generateRandomValue(def);
+                    }
+
+                    const previousValue = state.value;
+                    state.previousValue = previousValue;
+                    state.value = newValue;
+                    state.lastUpdate = hasData ? now.getTime() : state.lastUpdate;
+
+                    // Actualizar DOM
+                    updateCellDOM(def, state, newValue, previousValue);
+                });
+            }
+
+            function updateCellDOM(def, state, newValue, previousValue) {
+                const elements = cellElements[def.id];
+                if (!elements) return;
+
+                const { container, valueEl, unitEl } = elements;
+                const hasData = newValue !== null;
+                const wasActive = container.classList.contains('active');
+                const isNowActive = hasData;
+
+                // Actualizar clases de estado
+                if (isNowActive && !wasActive) {
+                    // Transición: de gris a verde
+                    container.classList.remove('inactive');
+                    container.classList.add('active');
+                    // Animación de ícono
+                    const iconEl = container.querySelector('.cell-icon');
+                    if (iconEl) {
+                        iconEl.style.animation = 'none';
+                        iconEl.offsetHeight; // reflow
+                        iconEl.style.animation = 'bounceIcon 0.5s ease-out';
+                    }
+                } else if (!isNowActive && wasActive) {
+                    // Transición: de verde a gris
+                    container.classList.remove('active');
+                    container.classList.add('inactive');
+                }
+
+                // Si tiene dato y cambió respecto al anterior, destellar
+                if (isNowActive && previousValue !== null && newValue !== previousValue) {
+                    container.classList.remove('flash-update');
+                    void container.offsetWidth; // reflow para reiniciar animación
+                    container.classList.add('flash-update');
+                    // Quitar la clase después de la animación
+                    setTimeout(() => {
+                        container.classList.remove('flash-update');
+                    }, 750);
+                }
+
+                // Si acaba de recibir su primer dato (antes era null), también destella
+                if (isNowActive && previousValue === null) {
+                    container.classList.remove('flash-update');
+                    void container.offsetWidth;
+                    container.classList.add('flash-update');
+                    setTimeout(() => {
+                        container.classList.remove('flash-update');
+                    }, 750);
+                }
+
+                // Actualizar texto del valor
+                if (hasData) {
+                    valueEl.textContent = newValue.toFixed(def.decimals);
+                    unitEl.textContent = def.unit;
+                    container.title =
+                        `${def.label}: ${newValue.toFixed(def.decimals)} ${def.unit} — Actualizado: ${new Date(state.lastUpdate).toLocaleTimeString('es-ES', { hour12: false })}`;
+                } else {
+                    valueEl.textContent = '—';
+                    unitEl.textContent = 'sin señal';
+                    container.title = `${def.label} — Sin datos (última lectura: ${state.lastUpdate ? new Date(state.lastUpdate).toLocaleTimeString('es-ES', { hour12: false }) : 'nunca'})`;
+                }
+            }
+
+            // ============ INICIALIZACIÓN ============
+            function initialize() {
+                buildGrid();
+                // Primera carga: asignar datos a ~60% de sensores para empezar
+                sensorDefinitions.forEach(def => {
+                    const hasData = Math.random() < 0.6;
+                    if (hasData) {
+                        sensorStates[def.id].value = generateRandomValue(def);
+                        sensorStates[def.id].lastUpdate = Date.now();
+                    } else {
+                        sensorStates[def.id].value = null;
+                        sensorStates[def.id].lastUpdate = null;
+                    }
+                    sensorStates[def.id].previousValue = null;
+                });
+
+                // Reflejar estado inicial en el DOM
+                sensorDefinitions.forEach(def => {
+                    const state = sensorStates[def.id];
+                    updateCellDOM(def, state, state.value, null);
+                });
+
+                // Configurar timestamp inicial
+                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
+                updateCounterEl.textContent = '0';
+            }
+
+            // ============ ARRANCAR ============
+            initialize();
+
+            // Actualización periódica
+            const intervalId = setInterval(updateAllSensors, UPDATE_INTERVAL_MS);
+
+            // Limpiar intervalo si la página se oculta (opcional, ahorra recursos)
+            document.addEventListener('visibilitychange', () => {
+                // Podríamos pausar, pero para simulación en vivo lo dejamos correr
+                // Si se quiere pausar al minimizar, descomentar:
+                // if (document.hidden) {
+                //     clearInterval(intervalId);
+                // } else {
+                //     intervalId = setInterval(updateAllSensors, UPDATE_INTERVAL_MS);
+                // }
+            });
+
+            console.log('✅ Dashboard de monitoreo en vivo inicializado.');
+            console.log('   🟢 Verde = tiene datos  |  ⚫ Gris = vacío/sin señal');
+            console.log(`   🔄 Actualizando cada ${UPDATE_INTERVAL_MS / 1000}s | Probabilidad de dato: ${(PROBABILITY_HAS_DATA * 100).toFixed(0)}%`);
+        })();
+    </script>
+</body>
+</html>
