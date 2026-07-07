@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Venta de Boletos 1-300 | Vendedores Predefinidos</title>
+    <title>Control de Venta de Boletos 1-300 | Supabase</title>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg: #0b0f14;
@@ -60,57 +62,19 @@
             border-bottom: 1px solid var(--border);
         }
         .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; }
-        .stats {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-        .stat-item {
-            background: #1a1f27;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .stats { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; font-size: 0.9rem; }
+        .stat-item { background: #1a1f27; border: 1px solid var(--border); border-radius: 12px; padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
         .stat-item .label { color: #8b949e; font-size: 0.8rem; }
-        .stat-item .value {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--green-bright);
-            font-variant-numeric: tabular-nums;
-        }
-        .timestamp {
-            font-family: 'SF Mono', 'Consolas', monospace;
-            font-size: 0.8rem;
-            color: #7d8590;
-            margin-left: auto;
-        }
+        .stat-item .value { font-size: 1.3rem; font-weight: 700; color: var(--green-bright); font-variant-numeric: tabular-nums; }
+        .timestamp { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; color: #7d8590; margin-left: auto; }
 
         .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 16px;
-            align-items: center;
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center;
         }
         .btn {
-            background: #1c2129;
-            border: 1px solid var(--border);
-            color: #c9d1d9;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            user-select: none;
+            background: #1c2129; border: 1px solid var(--border); color: #c9d1d9;
+            padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; user-select: none;
         }
         .btn:hover { background: #242b35; border-color: #4a5568; color: #fff; transform: translateY(-1px); }
         .btn:active { transform: scale(0.97); }
@@ -138,32 +102,16 @@
         .ticket-grid::-webkit-scrollbar-thumb { background: #2a3039; border-radius: 10px; }
 
         .ticket-cell {
-            background: var(--gray-bg);
-            border: 2px solid var(--gray-border);
-            border-radius: var(--card-radius);
-            padding: 8px 4px;
-            text-align: center;
-            cursor: pointer;
+            background: var(--gray-bg); border: 2px solid var(--gray-border); border-radius: var(--card-radius);
+            padding: 8px 4px; text-align: center; cursor: pointer;
             transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.2s;
-            position: relative;
-            overflow: hidden;
-            min-height: 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            user-select: none;
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #6e7681;
+            position: relative; overflow: hidden; min-height: 50px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+            user-select: none; font-weight: 600; font-size: 0.8rem; color: #6e7681;
         }
         .ticket-cell.sold {
-            background: var(--green-bg);
-            border-color: var(--green-border);
-            color: #fff;
-            box-shadow: 0 2px 10px rgba(63,185,80,0.3);
-            animation: subtleGlow 3s ease-in-out infinite;
+            background: var(--green-bg); border-color: var(--green-border); color: #fff;
+            box-shadow: 0 2px 10px rgba(63,185,80,0.3); animation: subtleGlow 3s ease-in-out infinite;
         }
         @keyframes subtleGlow {
             0%,100%{ box-shadow: 0 2px 10px rgba(63,185,80,0.3); }
@@ -189,13 +137,12 @@
             border-radius: 16px; padding: 24px; width: 90%; max-width: 400px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: var(--text);
         }
-        .modal h3 { margin-bottom: 16px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .modal h3 { margin-bottom: 16px; font-size: 1.2rem; }
         .modal label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #8b949e; }
         .modal select {
             width: 100%; padding: 10px 12px; background: #0d1117; border: 1px solid var(--border);
             border-radius: 8px; color: #e6edf3; font-size: 0.9rem; margin-bottom: 14px; outline: none;
         }
-        .modal select:focus { border-color: #58a6ff; }
         .price-options { display: flex; gap: 12px; margin-bottom: 20px; }
         .price-option {
             flex: 1; text-align: center; background: #1c2129; border: 1px solid var(--border);
@@ -205,8 +152,7 @@
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
         .modal-actions .btn { min-width: 80px; justify-content: center; }
 
-        /* Tooltip */
-        .ticket-cell[data-tooltip]:hover::after {
+        [data-tooltip]:hover::after {
             content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%;
             transform: translateX(-50%); background: #1c2129; border: 1px solid var(--border);
             padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap;
@@ -217,18 +163,10 @@
 <body>
     <div class="dashboard">
         <div class="header">
-            <div class="header-left">
-                <h1>🎟️ Control de Boletos 1-300</h1>
-            </div>
+            <div class="header-left"><h1>🎟️ Control de Boletos 1-300</h1></div>
             <div class="stats">
-                <div class="stat-item">
-                    <span class="label">🎯 Vendidos</span>
-                    <span class="value" id="soldCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">💰 Ganancia Total</span>
-                    <span class="value" id="totalRevenue">$0</span>
-                </div>
+                <div class="stat-item"><span class="label">🎯 Vendidos</span><span class="value" id="soldCount">0</span></div>
+                <div class="stat-item"><span class="label">💰 Ganancia Total</span><span class="value" id="totalRevenue">$0</span></div>
             </div>
             <div class="timestamp" id="liveTimestamp">--:--:--</div>
         </div>
@@ -274,13 +212,18 @@
 
     <script>
         (function() {
-            const TOTAL = 300;
-            const STORAGE_KEY = 'ticketSalesV2';
+            // ══════════════════════════════════════
+            // CONFIGURACIÓN DE SUPABASE
+            // ══════════════════════════════════════
+            const SUPABASE_URL = "https://tu-proyecto.supabase.co";  // ← cambia esto
+            const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // ← cambia esto
 
-            // Estado extendido: cada boleto { sold, seller, price }
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const TOTAL = 300;
+            // Estado local: array indexado de 1 a 300
             let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
-            // Variables del modal
             let currentModalTicket = null;
             let currentModalBlock = null;
             let selectedPrice = 200;
@@ -291,7 +234,6 @@
             const liveTimestampEl = document.getElementById('liveTimestamp');
             const cellElements = {};
 
-            // Modal elements
             const modalOverlay = document.getElementById('sellModal');
             const modalTicketNumber = document.getElementById('modalTicketNumber');
             const sellerSelect = document.getElementById('sellerSelect');
@@ -299,39 +241,64 @@
             const cancelSellBtn = document.getElementById('cancelSell');
             const confirmSellBtn = document.getElementById('confirmSell');
 
-            // ============ LOCAL STORAGE ============
-            function saveState() {
-                const data = {
-                    tickets: tickets.slice(1).map(t => ({ sold: t.sold, seller: t.seller, price: t.price })),
-                    lastUpdate: Date.now()
-                };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            }
+            // ══════════════════════════════════════
+            // INICIALIZACIÓN DE LA BASE DE DATOS
+            // ══════════════════════════════════════
+            async function cargarEstadoInicial() {
+                const { data, error } = await supabase
+                    .from('tickets')
+                    .select('*')
+                    .order('id', { ascending: true });
 
-            function loadState() {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    try {
-                        const data = JSON.parse(raw);
-                        if (data.tickets && Array.isArray(data.tickets) && data.tickets.length === TOTAL) {
-                            for (let i = 0; i < TOTAL; i++) {
-                                tickets[i+1] = {
-                                    sold: !!data.tickets[i].sold,
-                                    seller: data.tickets[i].seller || '',
-                                    price: data.tickets[i].price || 0
-                                };
-                            }
-                            return true;
-                        }
-                    } catch(e) {}
+                if (error) {
+                    console.error('Error al cargar los boletos:', error);
+                    return;
                 }
-                // Inicial: todos disponibles
-                for (let i = 1; i <= TOTAL; i++) tickets[i] = { sold: false, seller: '', price: 0 };
-                return false;
+
+                if (data && data.length === TOTAL) {
+                    for (let i = 0; i < TOTAL; i++) {
+                        const row = data[i];
+                        tickets[row.id] = {
+                            sold: row.sold,
+                            seller: row.seller || '',
+                            price: row.price || 0
+                        };
+                    }
+                }
+                refrescarTodasLasCeldas();
+                actualizarTotales();
             }
 
-            // ============ CONSTRUIR GRID ============
-            function buildGrid() {
+            // ══════════════════════════════════════
+            // TIEMPO REAL: SUSCRIPCIÓN A CAMBIOS
+            // ══════════════════════════════════════
+            function suscribirCambiosEnVivo() {
+                supabase
+                    .channel('tickets-cambios')
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'tickets' },
+                        (payload) => {
+                            // payload.new contiene la fila modificada
+                            if (payload.new && payload.new.id) {
+                                const id = payload.new.id;
+                                tickets[id] = {
+                                    sold: payload.new.sold,
+                                    seller: payload.new.seller || '',
+                                    price: payload.new.price || 0
+                                };
+                                actualizarCelda(id);
+                                actualizarTotales();
+                            }
+                        }
+                    )
+                    .subscribe();
+            }
+
+            // ══════════════════════════════════════
+            // INTERFAZ DE USUARIO (CELDAS)
+            // ══════════════════════════════════════
+            function construirGrid() {
                 gridEl.innerHTML = '';
                 for (let num = 1; num <= TOTAL; num++) {
                     const cell = document.createElement('div');
@@ -341,7 +308,7 @@
                         <span class="ticket-number">#${num}</span>
                         <span class="ticket-status" data-role="status">Disp.</span>
                     `;
-                    cell.addEventListener('click', () => onTicketClick(num));
+                    cell.addEventListener('click', () => manejarClickBoleto(num));
                     gridEl.appendChild(cell);
                     cellElements[num] = {
                         container: cell,
@@ -350,7 +317,7 @@
                 }
             }
 
-            function updateCell(num) {
+            function actualizarCelda(num) {
                 const { container, statusEl } = cellElements[num];
                 const t = tickets[num];
                 if (t.sold) {
@@ -366,28 +333,29 @@
                 }
             }
 
-            function refreshAllCells() {
-                for (let num = 1; num <= TOTAL; num++) updateCell(num);
+            function refrescarTodasLasCeldas() {
+                for (let num = 1; num <= TOTAL; num++) actualizarCelda(num);
             }
 
-            // ============ TOTALS ============
-            function updateTotals() {
-                let soldCount = 0, totalRev = 0;
+            function actualizarTotales() {
+                let vendidos = 0, ganancia = 0;
                 for (let i = 1; i <= TOTAL; i++) {
                     if (tickets[i].sold) {
-                        soldCount++;
-                        totalRev += tickets[i].price;
+                        vendidos++;
+                        ganancia += tickets[i].price;
                     }
                 }
-                soldCountEl.textContent = soldCount;
-                totalRevenueEl.textContent = `$${totalRev.toLocaleString()}`;
+                soldCountEl.textContent = vendidos;
+                totalRevenueEl.textContent = `$${ganancia.toLocaleString()}`;
             }
 
-            // ============ MODAL LOGIC ============
-            function openSellModal(ticketNumbers, isBlock = false) {
+            // ══════════════════════════════════════
+            // VENTAS
+            // ══════════════════════════════════════
+            function abrirModalVenta(ticketNumbers, isBlock = false) {
                 if (Array.isArray(ticketNumbers)) {
                     if (ticketNumbers.length === 0) {
-                        alert('No hay boletos disponibles para vender en esta selección.');
+                        alert('No hay boletos disponibles para vender.');
                         return;
                     }
                     currentModalTicket = null;
@@ -398,119 +366,135 @@
                     currentModalBlock = null;
                     modalTicketNumber.textContent = `#${ticketNumbers}`;
                 }
-
-                // Resetear selección de vendedor y precio
                 sellerSelect.value = '';
                 selectedPrice = 200;
                 document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
-                const defaultOption = document.querySelector('.price-option[data-price="200"]');
-                if (defaultOption) defaultOption.classList.add('selected');
-
+                document.querySelector('.price-option[data-price="200"]').classList.add('selected');
                 modalOverlay.classList.add('active');
                 sellerSelect.focus();
             }
 
-            function closeModal() {
+            function cerrarModal() {
                 modalOverlay.classList.remove('active');
                 currentModalTicket = null;
                 currentModalBlock = null;
             }
 
-            function confirmSale() {
+            async function confirmarVenta() {
                 const seller = sellerSelect.value;
                 if (!seller) {
-                    alert('Por favor selecciona un vendedor.');
+                    alert('Selecciona un vendedor.');
                     return;
                 }
                 const price = selectedPrice;
 
-                let targets = [];
+                let ids = [];
                 if (currentModalTicket !== null) {
                     if (tickets[currentModalTicket].sold) {
                         alert('Este boleto ya está vendido.');
-                        closeModal();
+                        cerrarModal();
                         return;
                     }
-                    targets = [currentModalTicket];
+                    ids = [currentModalTicket];
                 } else if (currentModalBlock && currentModalBlock.length > 0) {
-                    targets = currentModalBlock.filter(num => !tickets[num].sold);
-                    if (targets.length === 0) {
+                    ids = currentModalBlock.filter(num => !tickets[num].sold);
+                    if (ids.length === 0) {
                         alert('Todos los boletos seleccionados ya están vendidos.');
-                        closeModal();
+                        cerrarModal();
                         return;
                     }
                 }
 
-                // Realizar venta
-                for (const num of targets) {
-                    tickets[num].sold = true;
-                    tickets[num].seller = seller;
-                    tickets[num].price = price;
-                    updateCell(num);
+                // Actualizar en Supabase (upsert)
+                const updates = ids.map(id => ({
+                    id: id,
+                    sold: true,
+                    seller: seller,
+                    price: price
+                }));
+
+                const { error } = await supabase
+                    .from('tickets')
+                    .upsert(updates, { onConflict: 'id' });
+
+                if (error) {
+                    console.error('Error al vender boletos:', error);
+                    alert('Hubo un error al guardar la venta.');
                 }
 
-                updateTotals();
-                saveState();
-                updateTimestamp();
-                closeModal();
+                cerrarModal();
             }
 
-            // ============ EVENT HANDLERS ============
-            function onTicketClick(num) {
+            function manejarClickBoleto(num) {
                 if (tickets[num].sold) {
                     const t = tickets[num];
                     alert(`Boleto #${num}\nVendido por: ${t.seller}\nPrecio: $${t.price}`);
                 } else {
-                    openSellModal(num, false);
+                    abrirModalVenta(num, false);
                 }
             }
 
-            function sellFirstN(n) {
-                const available = [];
+            function venderPrimerosN(n) {
+                const disponibles = [];
                 for (let i = 1; i <= n; i++) {
-                    if (!tickets[i].sold) available.push(i);
+                    if (!tickets[i].sold) disponibles.push(i);
                 }
-                if (available.length === 0) {
-                    alert(`Todos los boletos del 1 al ${n} ya están vendidos.`);
+                if (disponibles.length === 0) {
+                    alert(`Los primeros ${n} boletos ya están vendidos.`);
                     return;
                 }
-                openSellModal(available, true);
+                abrirModalVenta(disponibles, true);
             }
 
-            function sellRandomN(n) {
-                const available = [];
+            function venderAleatoriosN(n) {
+                const disponibles = [];
                 for (let i = 1; i <= TOTAL; i++) {
-                    if (!tickets[i].sold) available.push(i);
+                    if (!tickets[i].sold) disponibles.push(i);
                 }
-                if (available.length === 0) {
+                if (disponibles.length === 0) {
                     alert('Todos los boletos están vendidos.');
                     return;
                 }
-                for (let i = available.length - 1; i > 0; i--) {
+                // Mezclar
+                for (let i = disponibles.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
-                    [available[i], available[j]] = [available[j], available[i]];
+                    [disponibles[i], disponibles[j]] = [disponibles[j], disponibles[i]];
                 }
-                const selected = available.slice(0, Math.min(n, available.length));
-                openSellModal(selected, true);
+                const seleccion = disponibles.slice(0, Math.min(n, disponibles.length));
+                abrirModalVenta(seleccion, true);
             }
 
-            function resetAll() {
-                if (confirm('¿Estás seguro de reiniciar todas las ventas? Esta acción no se puede deshacer.')) {
-                    for (let i = 1; i <= TOTAL; i++) {
-                        tickets[i] = { sold: false, seller: '', price: 0 };
-                        updateCell(i);
-                    }
-                    updateTotals();
-                    saveState();
-                    updateTimestamp();
+            async function reiniciarTodo() {
+                if (!confirm('¿Seguro que quieres reiniciar todas las ventas?')) return;
+
+                // Poner todos como no vendidos
+                const updates = [];
+                for (let i = 1; i <= TOTAL; i++) {
+                    updates.push({
+                        id: i,
+                        sold: false,
+                        seller: '',
+                        price: 0
+                    });
+                }
+
+                const { error } = await supabase
+                    .from('tickets')
+                    .upsert(updates, { onConflict: 'id' });
+
+                if (error) {
+                    console.error('Error al reiniciar:', error);
+                    alert('Error al reiniciar las ventas.');
                 }
             }
 
-            function updateTimestamp() {
+            function actualizarReloj() {
                 liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
             }
 
-            // ============ EVENT LISTENERS ============
+            // ══════════════════════════════════════
+            // EVENTOS DE BOTONES
+            // ══════════════════════════════════════
             priceOptionsContainer.addEventListener('click', (e) => {
                 const option = e.target.closest('.price-option');
                 if (!option) return;
@@ -519,36 +503,26 @@
                 selectedPrice = parseInt(option.dataset.price, 10);
             });
 
-            cancelSellBtn.addEventListener('click', closeModal);
-            confirmSellBtn.addEventListener('click', confirmSale);
+            cancelSellBtn.addEventListener('click', cerrarModal);
+            confirmSellBtn.addEventListener('click', confirmarVenta);
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
+            modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
-                    closeModal();
-                }
-            });
+            document.getElementById('btnSell200').addEventListener('click', () => venderPrimerosN(200));
+            document.getElementById('btnSell250').addEventListener('click', () => venderPrimerosN(250));
+            document.getElementById('btnSellRandom').addEventListener('click', () => venderAleatoriosN(200));
+            document.getElementById('btnResetAll').addEventListener('click', reiniciarTodo);
 
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) closeModal();
-            });
-
-            document.getElementById('btnSell200').addEventListener('click', () => sellFirstN(200));
-            document.getElementById('btnSell250').addEventListener('click', () => sellFirstN(250));
-            document.getElementById('btnSellRandom').addEventListener('click', () => sellRandomN(200));
-            document.getElementById('btnResetAll').addEventListener('click', resetAll);
-
-            // ============ INICIALIZACIÓN ============
-            function init() {
-                loadState();
-                buildGrid();
-                refreshAllCells();
-                updateTotals();
-                updateTimestamp();
-                setInterval(updateTimestamp, 1000);
-            }
-
-            init();
-            console.log('✅ Panel de control con vendedores predefinidos listo.');
+            // ══════════════════════════════════════
+            // ARRANQUE
+            // ══════════════════════════════════════
+            (async function init() {
+                construirGrid();
+                await cargarEstadoInicial();
+                suscribirCambiosEnVivo();
+                actualizarReloj();
+                setInterval(actualizarReloj, 1000);
+            })();
         })();
     </script>
 </body>
