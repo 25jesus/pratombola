@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* ===== ESTILOS (iguales, con algunos ajustes) ===== */
+        /* ===== ESTILOS (iguales, solo se quitó el segundo stat-item) ===== */
         :root {
             --bg: #0b0f14;
             --panel-bg: #131920;
@@ -461,8 +461,8 @@
         <div class="header">
             <div class="header-left"><h1>🎟️ Control de Boletos 1-300</h1></div>
             <div class="stats">
+                <!-- Solo mantenemos el contador de vendidos, eliminamos ganancia -->
                 <div class="stat-item"><span class="label">🎯 Vendidos</span><span class="value" id="soldCount">0</span></div>
-                <div class="stat-item"><span class="label">💰 Ganancia Total</span><span class="value" id="totalRevenue">$0</span></div>
             </div>
             <div class="timestamp" id="liveTimestamp">--:--:--</div>
         </div>
@@ -500,6 +500,7 @@
                 <option value="Jesús">Jesús</option>
                 <option value="Leslie">Leslie</option>
                 <option value="Mamá">Mamá</option>
+                <option value="Araceli">Araceli</option>   <!-- NUEVO VENDEDOR -->
             </select>
             <label>💵 Precio de venta</label>
             <div class="price-options" id="priceOptions">
@@ -527,14 +528,13 @@
             let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
 
             // Estado del modal
-            let currentModalTicket = null; // número individual
-            let currentModalBlock = null; // array de números (para venta múltiple)
+            let currentModalTicket = null;
+            let currentModalBlock = null;
             let selectedPrice = 200;
-            let editingMode = false; // true si estamos editando un boleto vendido
+            let editingMode = false;
 
             const gridEl = document.getElementById('ticketGrid');
             const soldCountEl = document.getElementById('soldCount');
-            const totalRevenueEl = document.getElementById('totalRevenue');
             const liveTimestampEl = document.getElementById('liveTimestamp');
             const cellElements = {};
 
@@ -718,17 +718,13 @@
                 for (let num = 1; num <= TOTAL; num++) actualizarCelda(num);
             }
 
+            // Solo actualiza vendidos (eliminamos ganancia)
             function actualizarTotales() {
-                let vendidos = 0,
-                    ganancia = 0;
+                let vendidos = 0;
                 for (let i = 1; i <= TOTAL; i++) {
-                    if (tickets[i].sold) {
-                        vendidos++;
-                        ganancia += tickets[i].price;
-                    }
+                    if (tickets[i].sold) vendidos++;
                 }
                 soldCountEl.textContent = vendidos;
-                totalRevenueEl.textContent = `$${ganancia.toLocaleString()}`;
             }
 
             // ══════════════════════════════════════
@@ -766,7 +762,6 @@
             function abrirModalEdicion(num) {
                 const t = tickets[num];
                 if (!t.sold) {
-                    // Si no está vendido, abrir modal de venta normal
                     abrirModalVenta(num, false);
                     return;
                 }
@@ -777,16 +772,13 @@
                 modalTicketNumber.textContent = `#${num}`;
                 modalTitle.innerHTML = `✏️ Editar Boleto <span id="modalTicketNumber">#${num}</span>`;
 
-                // Cargar datos actuales
                 sellerSelect.value = t.seller || '';
-                // Seleccionar precio
                 const price = t.price || 200;
                 document.querySelectorAll('.price-option').forEach(el => {
                     el.classList.toggle('selected', parseInt(el.dataset.price) === price);
                 });
                 selectedPrice = price;
 
-                // Mostrar botón Anular
                 btnAnular.style.display = 'inline-flex';
                 confirmSellBtn.textContent = '💾 Actualizar venta';
 
@@ -827,7 +819,6 @@
                     return;
                 }
 
-                // Preparar actualización
                 const updates = ids.map(id => ({
                     id: id,
                     sold: true,
@@ -849,7 +840,6 @@
             }
 
             async function actualizarVenta() {
-                // Similar a confirmarVenta pero solo para un boleto
                 if (!editingMode || currentModalTicket === null) return;
 
                 const seller = sellerSelect.value;
@@ -920,7 +910,6 @@
             // ══════════════════════════════════════
             function manejarClickBoleto(num) {
                 if (tickets[num].sold) {
-                    // Editar
                     abrirModalEdicion(num);
                 } else {
                     abrirModalVenta(num, false);
@@ -996,7 +985,7 @@
                 construirGrid();
                 await cargarEstadoInicial();
                 suscribirCambiosEnVivo();
-                iniciarPolling(10000); // <-- Refresco automático cada 10s
+                iniciarPolling(10000);
                 actualizarReloj();
                 setInterval(actualizarReloj, 1000);
             })();
