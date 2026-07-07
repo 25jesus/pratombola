@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Monitoreo en Vivo</title>
+    <title>Panel de Boletos 1-300 | Monitoreo en Vivo</title>
     <style>
         :root {
-            --bg: #0d1117;
-            --panel-bg: #161b22;
-            --border: #30363d;
+            --bg: #0b0f12;
+            --panel-bg: #13181f;
+            --border: #2a323c;
             --text: #e6edf3;
             --text-secondary: #8b949e;
             --green-bright: #3fb950;
             --green-bg: #1a3a1f;
             --green-border: #2ea043;
-            --gray-bg: #1c1c1e;
+            --gray-bg: #1c1c1f;
             --gray-border: #3a3a3d;
-            --red-pulse: #ff6b6b;
-            --card-radius: 14px;
-            --transition-speed: 0.5s;
+            --card-radius: 8px;
+            --transition-speed: 0.4s;
         }
 
         * {
@@ -35,22 +34,22 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 16px;
             background-image:
-                radial-gradient(ellipse at 30% 20%, rgba(63, 185, 80, 0.04) 0%, transparent 60%),
-                radial-gradient(ellipse at 70% 60%, rgba(63, 185, 80, 0.03) 0%, transparent 60%);
+                radial-gradient(ellipse at 20% 30%, rgba(63, 185, 80, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(63, 185, 80, 0.03) 0%, transparent 50%);
         }
 
         .dashboard {
             width: 100%;
-            max-width: 1100px;
+            max-width: 1300px;
             background: var(--panel-bg);
             border-radius: 20px;
             border: 1px solid var(--border);
-            padding: 28px 30px 32px;
+            padding: 22px 24px 28px;
             box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+                0 20px 60px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.02) inset;
         }
 
         /* ========= HEADER ========= */
@@ -59,49 +58,43 @@
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 24px;
-            padding-bottom: 18px;
+            gap: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
             border-bottom: 1px solid var(--border);
         }
-
         .header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
-
         .header-left h1 {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 700;
             letter-spacing: -0.3px;
-            color: var(--text);
         }
-
         .live-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             background: rgba(63, 185, 80, 0.12);
-            padding: 7px 14px;
+            padding: 5px 12px;
             border-radius: 20px;
             border: 1px solid rgba(63, 185, 80, 0.3);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.5px;
             color: var(--green-bright);
             text-transform: uppercase;
         }
-
         .pulse-dot {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background: var(--green-bright);
             animation: pulse 1.2s ease-in-out infinite;
-            box-shadow: 0 0 10px rgba(63, 185, 80, 0.7);
+            box-shadow: 0 0 8px rgba(63, 185, 80, 0.7);
         }
-
         @keyframes pulse {
             0%,
             100% {
@@ -109,57 +102,52 @@
                 transform: scale(1);
             }
             50% {
-                opacity: 0.35;
-                transform: scale(1.7);
+                opacity: 0.3;
+                transform: scale(1.8);
             }
         }
-
         .header-right {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
         }
-
         .update-counter {
             background: #1a1f27;
-            padding: 7px 13px;
+            padding: 5px 11px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            font-variant-numeric: tabular-nums;
-            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 0.82rem;
-            color: #c9d1d9;
-            min-width: 70px;
-            text-align: center;
-        }
-
-        .timestamp {
-            font-variant-numeric: tabular-nums;
             font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
             font-size: 0.8rem;
+            color: #c9d1d9;
+            min-width: 55px;
+            text-align: center;
+        }
+        .timestamp {
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 0.78rem;
             color: #8b949e;
         }
 
         /* ========= LEYENDA ========= */
         .legend {
             display: flex;
-            gap: 22px;
-            margin-bottom: 20px;
+            gap: 20px;
+            margin-bottom: 18px;
             flex-wrap: wrap;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
         }
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
         }
         .legend-swatch {
-            width: 18px;
-            height: 18px;
-            border-radius: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
             border: 2px solid transparent;
             flex-shrink: 0;
         }
@@ -172,37 +160,100 @@
             border-color: var(--gray-border);
         }
 
-        /* ========= GRID DE CELDAS ========= */
-        .sensor-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 16px;
+        /* ========= CONTROLES ========= */
+        .controls-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn {
+            background: #1c2128;
+            border: 1px solid var(--border);
+            color: #c9d1d9;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn:hover {
+            background: #242b33;
+            border-color: #4a5568;
+            color: #ffffff;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .stats-mini {
+            font-size: 0.78rem;
+            color: #8b949e;
+            margin-left: 5px;
+            background: #161b22;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #2a323c;
+        }
+        .stats-mini strong {
+            color: #e6edf3;
+            font-weight: 600;
         }
 
-        .sensor-cell {
+        /* ========= GRID DE BOLETOS ========= */
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            max-height: 65vh;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-top: 4px;
+        }
+        /* Scroll personalizado */
+        .ticket-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+        .ticket-grid::-webkit-scrollbar-track {
+            background: #0f1319;
+            border-radius: 10px;
+        }
+        .ticket-grid::-webkit-scrollbar-thumb {
+            background: #2d333b;
+            border-radius: 10px;
+            border: 1px solid #3a3f47;
+        }
+
+        .ticket-cell {
             background: var(--gray-bg);
             border: 2px solid var(--gray-border);
             border-radius: var(--card-radius);
-            padding: 18px 14px 16px;
+            padding: 6px 4px;
             text-align: center;
             cursor: default;
             transition:
                 background var(--transition-speed) ease,
                 border-color var(--transition-speed) ease,
                 box-shadow var(--transition-speed) ease,
-                transform 0.3s ease;
+                transform 0.25s ease;
             position: relative;
             overflow: hidden;
-            min-height: 120px;
+            min-height: 48px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 2px;
             user-select: none;
+            font-weight: 600;
+            font-size: 0.8rem;
         }
 
-        .sensor-cell::before {
+        .ticket-cell::before {
             content: '';
             position: absolute;
             top: 0;
@@ -211,203 +262,106 @@
             bottom: 0;
             border-radius: var(--card-radius);
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.45s ease;
             pointer-events: none;
             z-index: 0;
         }
 
-        /* Estado: CON DATOS (verde) */
-        .sensor-cell.active {
+        /* Verde = con datos */
+        .ticket-cell.active {
             background: var(--green-bg);
             border-color: var(--green-border);
-            box-shadow:
-                0 4px 18px rgba(63, 185, 80, 0.25),
-                0 0 0 1px rgba(63, 185, 80, 0.1) inset;
-            animation: glowPulse 2.5s ease-in-out infinite;
+            box-shadow: 0 2px 10px rgba(63, 185, 80, 0.25), 0 0 0 1px rgba(63, 185, 80, 0.08) inset;
+            animation: subtleGlow 3s ease-in-out infinite;
+            color: #ffffff;
         }
-
-        .sensor-cell.active::before {
-            background: radial-gradient(ellipse at center,
-                    rgba(63, 185, 80, 0.18) 0%,
-                    transparent 70%);
+        .ticket-cell.active::before {
+            background: radial-gradient(ellipse at center, rgba(63, 185, 80, 0.2) 0%, transparent 70%);
             opacity: 1;
         }
-
-        @keyframes glowPulse {
+        @keyframes subtleGlow {
             0%,
             100% {
-                box-shadow: 0 4px 18px rgba(63, 185, 80, 0.25), 0 0 0 1px rgba(63, 185, 80, 0.1) inset;
+                box-shadow: 0 2px 10px rgba(63, 185, 80, 0.25), 0 0 0 1px rgba(63, 185, 80, 0.08) inset;
             }
             50% {
-                box-shadow: 0 6px 28px rgba(63, 185, 80, 0.45), 0 0 0 1px rgba(63, 185, 80, 0.2) inset;
+                box-shadow: 0 4px 18px rgba(63, 185, 80, 0.45), 0 0 0 1px rgba(63, 185, 80, 0.18) inset;
             }
         }
 
-        /* Estado: SIN DATOS (gris) */
-        .sensor-cell.inactive {
-            background: #1a1a1d;
+        /* Gris = vacío */
+        .ticket-cell.inactive {
+            background: #1b1b1e;
             border-color: #3a3a3e;
             box-shadow: none;
             animation: none;
+            color: #5a5a62;
         }
-        .sensor-cell.inactive::before {
+        .ticket-cell.inactive::before {
             opacity: 0;
         }
 
-        /* Efecto hover sutil */
-        .sensor-cell:hover {
-            transform: translateY(-3px);
+        .ticket-cell:hover {
+            transform: translateY(-2px);
             z-index: 2;
         }
-        .sensor-cell.active:hover {
-            box-shadow: 0 10px 32px rgba(63, 185, 80, 0.4), 0 0 0 1px rgba(63, 185, 80, 0.25) inset;
-        }
-        .sensor-cell.inactive:hover {
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-            border-color: #555;
+        .ticket-cell.active:hover {
+            box-shadow: 0 8px 22px rgba(63, 185, 80, 0.5), 0 0 0 1px rgba(63, 185, 80, 0.25) inset;
         }
 
-        /* Contenido de la celda */
-        .cell-icon {
-            font-size: 1.8rem;
-            z-index: 1;
-            transition: transform 0.3s ease;
-            line-height: 1;
-        }
-        .sensor-cell.active .cell-icon {
-            animation: bounceIcon 0.5s ease-out;
-        }
-        @keyframes bounceIcon {
-            0% {
-                transform: scale(0.6);
-                opacity: 0;
-            }
-            60% {
-                transform: scale(1.15);
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .cell-label {
-            font-size: 0.78rem;
-            font-weight: 600;
-            letter-spacing: 0.2px;
-            z-index: 1;
-            color: #b0b8c1;
-            transition: color 0.4s ease;
-        }
-        .sensor-cell.active .cell-label {
-            color: #d2f0d6;
-        }
-        .sensor-cell.inactive .cell-label {
-            color: #6e6e78;
-        }
-
-        .cell-value {
-            font-size: 1.6rem;
+        .ticket-number {
+            font-size: 0.8rem;
             font-weight: 700;
             z-index: 1;
-            letter-spacing: -0.5px;
-            transition: all 0.4s ease;
-            font-variant-numeric: tabular-nums;
-            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            line-height: 1;
         }
-        .sensor-cell.active .cell-value {
-            color: #ffffff;
-        }
-        .sensor-cell.inactive .cell-value {
-            color: #55555c;
-            font-size: 0.85rem;
-            font-weight: 500;
-            letter-spacing: 0;
-        }
-
-        .cell-unit {
-            font-size: 0.7rem;
-            font-weight: 500;
+        .ticket-data {
+            font-size: 0.55rem;
             z-index: 1;
-            color: #7d8590;
-            letter-spacing: 0.3px;
-            transition: color 0.4s ease;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            opacity: 0.9;
         }
-        .sensor-cell.active .cell-unit {
-            color: #8ec894;
-        }
-        .sensor-cell.inactive .cell-unit {
+        .ticket-cell.inactive .ticket-data {
             color: #4a4a52;
         }
 
-        /* Destello al recibir dato nuevo */
-        .sensor-cell.flash-update {
-            animation: flashGreen 0.7s ease-out;
+        /* Destello de actualización */
+        .ticket-cell.flash-update {
+            animation: flashGreen 0.65s ease-out;
         }
         @keyframes flashGreen {
             0% {
-                filter: brightness(2.2);
-                box-shadow: 0 0 40px rgba(63, 185, 80, 0.9), 0 0 80px rgba(63, 185, 80, 0.5);
+                filter: brightness(2.4);
+                box-shadow: 0 0 35px rgba(63, 185, 80, 0.9);
             }
             100% {
                 filter: brightness(1);
             }
         }
 
-        /* ========= RESPONSIVE ========= */
         @media (max-width: 768px) {
-            .dashboard {
-                padding: 18px 14px 20px;
-                border-radius: 14px;
+            .ticket-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+                gap: 5px;
             }
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
+            .ticket-cell {
+                min-height: 40px;
+                padding: 4px 2px;
+                font-size: 0.7rem;
             }
-            .sensor-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 10px;
-            }
-            .sensor-cell {
-                padding: 14px 8px 12px;
-                min-height: 100px;
-                border-radius: 12px;
-            }
-            .cell-value {
-                font-size: 1.3rem;
-            }
-            .header-left h1 {
-                font-size: 1.3rem;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .sensor-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-            .sensor-cell {
-                min-height: 85px;
-                padding: 10px 6px 8px;
-                border-radius: 10px;
-            }
-            .cell-value {
-                font-size: 1.1rem;
-            }
-            .cell-label {
+            .ticket-number {
                 font-size: 0.7rem;
             }
         }
     </style>
 </head>
 <body>
-
     <div class="dashboard">
         <!-- HEADER -->
         <div class="dashboard-header">
             <div class="header-left">
-                <h1>📡 Panel de Monitoreo</h1>
+                <h1>🎟️ Boletos 1-300</h1>
                 <div class="live-indicator">
                     <span class="pulse-dot"></span> EN VIVO
                 </div>
@@ -419,115 +373,123 @@
             </div>
         </div>
 
-        <!-- LEYENDA -->
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-swatch green"></div>
-                <span>Con datos (verde)</span>
+        <!-- LEYENDA + ESTADÍSTICAS -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-swatch green"></div>
+                    <span>Con datos (verde)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-swatch gray"></div>
+                    <span>Vacío / sin dato (gris)</span>
+                </div>
             </div>
-            <div class="legend-item">
-                <div class="legend-swatch gray"></div>
-                <span>Sin datos / vacío (gris)</span>
+            <div class="stats-mini">
+                🟢 <strong id="activeCount">0</strong> activos &nbsp;|&nbsp; ⚫ <strong id="inactiveCount">300</strong> vacíos
             </div>
         </div>
 
-        <!-- GRID DE SENSORES -->
-        <div class="sensor-grid" id="sensorGrid">
-            <!-- Las celdas se generan dinámicamente con JavaScript -->
+        <!-- CONTROLES RÁPIDOS -->
+        <div class="controls-bar">
+            <button class="btn" id="btnRandomize"><span>🎲</span> Aleatorizar datos</button>
+            <button class="btn" id="btnFillAll"><span>✅</span> Llenar todos</button>
+            <button class="btn" id="btnClearAll"><span>🧹</span> Vaciar todos</button>
+            <span style="font-size:0.7rem; color:#6e7681; margin-left:6px;">Simulación cada 2.5s</span>
+        </div>
+
+        <!-- GRID DE BOLETOS -->
+        <div class="ticket-grid" id="ticketGrid">
+            <!-- generado dinámicamente -->
         </div>
     </div>
 
     <script>
         (function() {
             // ============ CONFIGURACIÓN ============
-            const UPDATE_INTERVAL_MS = 2200; // Cada 2.2 segundos se actualizan los datos
-            const PROBABILITY_HAS_DATA = 0.65; // 65% de probabilidad de que una celda tenga dato
+            const TOTAL_TICKETS = 300;
+            const UPDATE_INTERVAL_MS = 2500; // 2.5 segundos
+            const PROBABILITY_HAS_DATA = 0.6; // 60% de probabilidad de que un boleto tenga dato en cada ciclo
 
-            // Definición de los sensores/estaciones
-            const sensorDefinitions = [
-                { id: 'temp-1', label: 'Temp. Norte', icon: '🌡️', unit: '°C', min: 18, max: 38, decimals: 1 },
-                { id: 'temp-2', label: 'Temp. Sur', icon: '🌡️', unit: '°C', min: 16, max: 40, decimals: 1 },
-                { id: 'hum-1', label: 'Humedad A', icon: '💧', unit: '%', min: 30, max: 95, decimals: 0 },
-                { id: 'hum-2', label: 'Humedad B', icon: '💧', unit: '%', min: 25, max: 90, decimals: 0 },
-                { id: 'pres-1', label: 'Presión 1', icon: '🌀', unit: 'hPa', min: 980, max: 1040, decimals: 1 },
-                { id: 'pres-2', label: 'Presión 2', icon: '🌀', unit: 'hPa', min: 975, max: 1035, decimals: 1 },
-                { id: 'volt-1', label: 'Voltaje L1', icon: '⚡', unit: 'V', min: 210, max: 245, decimals: 1 },
-                { id: 'volt-2', label: 'Voltaje L2', icon: '⚡', unit: 'V', min: 205, max: 250, decimals: 1 },
-                { id: 'flow-1', label: 'Flujo A', icon: '💨', unit: 'L/min', min: 2, max: 18, decimals: 1 },
-                { id: 'flow-2', label: 'Flujo B', icon: '💨', unit: 'L/min', min: 1, max: 20, decimals: 1 },
-                { id: 'vib-1', label: 'Vibración X', icon: '📳', unit: 'mm/s', min: 0.5, max: 8, decimals: 2 },
-                { id: 'vib-2', label: 'Vibración Y', icon: '📳', unit: 'mm/s', min: 0.3, max: 7, decimals: 2 },
-            ];
-
-            // Estado actual de cada sensor: { value: number|null, lastUpdate: timestamp }
-            const sensorStates = {};
-            sensorDefinitions.forEach(def => {
-                sensorStates[def.id] = {
-                    value: null,
+            // Estado de cada boleto (1 a 300)
+            const ticketStates = {};
+            for (let i = 1; i <= TOTAL_TICKETS; i++) {
+                ticketStates[i] = {
+                    value: null, // null = vacío, cualquier string/number = con dato
                     lastUpdate: null,
-                    previousValue: null, // para detectar cambios
+                    previousValue: null,
                 };
-            });
+            }
 
             let updateCount = 0;
-            const gridEl = document.getElementById('sensorGrid');
+            const gridEl = document.getElementById('ticketGrid');
             const updateCounterEl = document.getElementById('updateCounter');
             const liveTimestampEl = document.getElementById('liveTimestamp');
+            const activeCountEl = document.getElementById('activeCount');
+            const inactiveCountEl = document.getElementById('inactiveCount');
 
-            // Referencias a los elementos DOM de cada celda (para actualización rápida)
-            const cellElements = {}; // { id: { container, valueEl, unitEl } }
+            // Referencias rápidas a cada celda
+            const cellElements = {}; // { ticketNumber: { container, dataEl } }
 
-            // ============ CONSTRUIR LA CUADRÍCULA ============
+            // ============ CONSTRUIR LA CUADRÍCULA DE 300 BOLETOS ============
             function buildGrid() {
                 gridEl.innerHTML = '';
-                sensorDefinitions.forEach(def => {
+                for (let num = 1; num <= TOTAL_TICKETS; num++) {
                     const cell = document.createElement('div');
-                    cell.className = 'sensor-cell inactive';
-                    cell.setAttribute('data-sensor-id', def.id);
-                    cell.title = `${def.label} — Sin datos`;
+                    cell.className = 'ticket-cell inactive';
+                    cell.setAttribute('data-ticket', num);
+                    cell.title = `Boleto #${num} — Sin datos`;
 
                     cell.innerHTML = `
-                            <span class="cell-icon">${def.icon}</span>
-                            <span class="cell-label">${def.label}</span>
-                            <span class="cell-value" data-role="value">—</span>
-                            <span class="cell-unit" data-role="unit">${def.unit}</span>
+                            <span class="ticket-number">#${num}</span>
+                            <span class="ticket-data" data-role="data">—</span>
                         `;
 
                     gridEl.appendChild(cell);
 
-                    cellElements[def.id] = {
+                    cellElements[num] = {
                         container: cell,
-                        valueEl: cell.querySelector('[data-role="value"]'),
-                        unitEl: cell.querySelector('[data-role="unit"]'),
+                        dataEl: cell.querySelector('[data-role="data"]'),
                     };
-                });
+                }
             }
 
-            // ============ GENERAR VALOR ALEATORIO ============
-            function generateRandomValue(def) {
-                const range = def.max - def.min;
-                let raw = Math.random() * range + def.min;
-                // Redondear según decimals
-                const factor = Math.pow(10, def.decimals);
-                raw = Math.round(raw * factor) / factor;
-                // Asegurar dentro del rango
-                return Math.min(def.max, Math.max(def.min, raw));
+            // ============ GENERAR DATO ALEATORIO PARA UN BOLETO ============
+            function generateRandomTicketData(ticketNumber) {
+                // Simula distintos tipos de datos: precio, código, estado, etc.
+                const types = ['precio', 'codigo', 'estado'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                if (type === 'precio') {
+                    const price = (Math.random() * 150 + 5).toFixed(2);
+                    return `$${price}`;
+                } else if (type === 'codigo') {
+                    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+                    const code = Array.from({ length: 3 }, () => letters[Math.floor(Math.random() * letters
+                        .length)]).join('');
+                    return `C-${code}`;
+                } else {
+                    const estados = ['Activo', 'Reservado', 'Pagado', 'Enviado'];
+                    return estados[Math.floor(Math.random() * estados.length)];
+                }
             }
 
-            // ============ ACTUALIZAR DATOS ============
-            function updateAllSensors() {
+            // ============ ACTUALIZAR TODOS LOS BOLETOS (CICLO AUTOMÁTICO) ============
+            function updateAllTickets() {
                 const now = new Date();
                 updateCount++;
                 updateCounterEl.textContent = updateCount;
                 liveTimestampEl.textContent = now.toLocaleTimeString('es-ES', { hour12: false });
 
-                sensorDefinitions.forEach(def => {
-                    const state = sensorStates[def.id];
+                let activeTally = 0;
+                let inactiveTally = 0;
+
+                for (let num = 1; num <= TOTAL_TICKETS; num++) {
+                    const state = ticketStates[num];
                     const hasData = Math.random() < PROBABILITY_HAS_DATA;
 
                     let newValue = null;
                     if (hasData) {
-                        newValue = generateRandomValue(def);
+                        newValue = generateRandomTicketData(num);
                     }
 
                     const previousValue = state.value;
@@ -535,119 +497,155 @@
                     state.value = newValue;
                     state.lastUpdate = hasData ? now.getTime() : state.lastUpdate;
 
-                    // Actualizar DOM
-                    updateCellDOM(def, state, newValue, previousValue);
-                });
+                    // Actualizar DOM de la celda
+                    updateCellDOM(num, state, newValue, previousValue);
+
+                    if (newValue !== null) activeTally++;
+                    else inactiveTally++;
+                }
+
+                // Actualizar contadores visuales
+                activeCountEl.textContent = activeTally;
+                inactiveCountEl.textContent = inactiveTally;
             }
 
-            function updateCellDOM(def, state, newValue, previousValue) {
-                const elements = cellElements[def.id];
+            function updateCellDOM(ticketNumber, state, newValue, previousValue) {
+                const elements = cellElements[ticketNumber];
                 if (!elements) return;
 
-                const { container, valueEl, unitEl } = elements;
+                const { container, dataEl } = elements;
                 const hasData = newValue !== null;
                 const wasActive = container.classList.contains('active');
                 const isNowActive = hasData;
 
-                // Actualizar clases de estado
+                // Cambio de clase
                 if (isNowActive && !wasActive) {
-                    // Transición: de gris a verde
                     container.classList.remove('inactive');
                     container.classList.add('active');
-                    // Animación de ícono
-                    const iconEl = container.querySelector('.cell-icon');
-                    if (iconEl) {
-                        iconEl.style.animation = 'none';
-                        iconEl.offsetHeight; // reflow
-                        iconEl.style.animation = 'bounceIcon 0.5s ease-out';
-                    }
                 } else if (!isNowActive && wasActive) {
-                    // Transición: de verde a gris
                     container.classList.remove('active');
                     container.classList.add('inactive');
                 }
 
-                // Si tiene dato y cambió respecto al anterior, destellar
+                // Destello si cambió el valor (y tiene dato)
                 if (isNowActive && previousValue !== null && newValue !== previousValue) {
-                    container.classList.remove('flash-update');
-                    void container.offsetWidth; // reflow para reiniciar animación
-                    container.classList.add('flash-update');
-                    // Quitar la clase después de la animación
-                    setTimeout(() => {
-                        container.classList.remove('flash-update');
-                    }, 750);
+                    triggerFlash(container);
                 }
-
-                // Si acaba de recibir su primer dato (antes era null), también destella
                 if (isNowActive && previousValue === null) {
-                    container.classList.remove('flash-update');
-                    void container.offsetWidth;
-                    container.classList.add('flash-update');
-                    setTimeout(() => {
-                        container.classList.remove('flash-update');
-                    }, 750);
+                    triggerFlash(container);
                 }
 
-                // Actualizar texto del valor
+                // Texto del dato
                 if (hasData) {
-                    valueEl.textContent = newValue.toFixed(def.decimals);
-                    unitEl.textContent = def.unit;
+                    dataEl.textContent = newValue;
                     container.title =
-                        `${def.label}: ${newValue.toFixed(def.decimals)} ${def.unit} — Actualizado: ${new Date(state.lastUpdate).toLocaleTimeString('es-ES', { hour12: false })}`;
+                        `Boleto #${ticketNumber} — ${newValue} (actualizado: ${new Date(state.lastUpdate).toLocaleTimeString('es-ES', { hour12: false })})`;
                 } else {
-                    valueEl.textContent = '—';
-                    unitEl.textContent = 'sin señal';
-                    container.title = `${def.label} — Sin datos (última lectura: ${state.lastUpdate ? new Date(state.lastUpdate).toLocaleTimeString('es-ES', { hour12: false }) : 'nunca'})`;
+                    dataEl.textContent = '—';
+                    container.title = `Boleto #${ticketNumber} — Sin datos`;
                 }
+            }
+
+            function triggerFlash(container) {
+                container.classList.remove('flash-update');
+                void container.offsetWidth;
+                container.classList.add('flash-update');
+                setTimeout(() => {
+                    container.classList.remove('flash-update');
+                }, 700);
+            }
+
+            // ============ ACTUALIZAR CONTADORES GENERALES ============
+            function recalcCounters() {
+                let active = 0;
+                for (let num = 1; num <= TOTAL_TICKETS; num++) {
+                    if (ticketStates[num].value !== null) active++;
+                }
+                activeCountEl.textContent = active;
+                inactiveCountEl.textContent = TOTAL_TICKETS - active;
+            }
+
+            // ============ ACCIONES MANUALES ============
+            function randomizeAll() {
+                const now = Date.now();
+                for (let num = 1; num <= TOTAL_TICKETS; num++) {
+                    const hasData = Math.random() < 0.55;
+                    const state = ticketStates[num];
+                    const prev = state.value;
+                    state.previousValue = prev;
+                    state.value = hasData ? generateRandomTicketData(num) : null;
+                    state.lastUpdate = hasData ? now : state.lastUpdate;
+                    updateCellDOM(num, state, state.value, prev);
+                }
+                recalcCounters();
+                updateCount++;
+                updateCounterEl.textContent = updateCount;
+                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
+            }
+
+            function fillAll() {
+                const now = Date.now();
+                for (let num = 1; num <= TOTAL_TICKETS; num++) {
+                    const state = ticketStates[num];
+                    const prev = state.value;
+                    state.previousValue = prev;
+                    state.value = generateRandomTicketData(num);
+                    state.lastUpdate = now;
+                    updateCellDOM(num, state, state.value, prev);
+                }
+                recalcCounters();
+                updateCount++;
+                updateCounterEl.textContent = updateCount;
+                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
+            }
+
+            function clearAll() {
+                for (let num = 1; num <= TOTAL_TICKETS; num++) {
+                    const state = ticketStates[num];
+                    const prev = state.value;
+                    state.previousValue = prev;
+                    state.value = null;
+                    state.lastUpdate = null;
+                    updateCellDOM(num, state, null, prev);
+                }
+                recalcCounters();
+                updateCount++;
+                updateCounterEl.textContent = updateCount;
+                liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
             }
 
             // ============ INICIALIZACIÓN ============
             function initialize() {
                 buildGrid();
-                // Primera carga: asignar datos a ~60% de sensores para empezar
-                sensorDefinitions.forEach(def => {
-                    const hasData = Math.random() < 0.6;
-                    if (hasData) {
-                        sensorStates[def.id].value = generateRandomValue(def);
-                        sensorStates[def.id].lastUpdate = Date.now();
-                    } else {
-                        sensorStates[def.id].value = null;
-                        sensorStates[def.id].lastUpdate = null;
-                    }
-                    sensorStates[def.id].previousValue = null;
-                });
 
-                // Reflejar estado inicial en el DOM
-                sensorDefinitions.forEach(def => {
-                    const state = sensorStates[def.id];
-                    updateCellDOM(def, state, state.value, null);
-                });
-
-                // Configurar timestamp inicial
+                // Estado inicial: algunos boletos con datos (~40%)
+                const now = Date.now();
+                for (let num = 1; num <= TOTAL_TICKETS; num++) {
+                    const hasData = Math.random() < 0.4;
+                    const state = ticketStates[num];
+                    state.value = hasData ? generateRandomTicketData(num) : null;
+                    state.lastUpdate = hasData ? now : null;
+                    state.previousValue = null;
+                    updateCellDOM(num, state, state.value, null);
+                }
+                recalcCounters();
                 liveTimestampEl.textContent = new Date().toLocaleTimeString('es-ES', { hour12: false });
                 updateCounterEl.textContent = '0';
             }
 
-            // ============ ARRANCAR ============
+            // ============ EVENTOS ============
+            document.getElementById('btnRandomize').addEventListener('click', randomizeAll);
+            document.getElementById('btnFillAll').addEventListener('click', fillAll);
+            document.getElementById('btnClearAll').addEventListener('click', clearAll);
+
+            // ============ ARRANQUE ============
             initialize();
 
-            // Actualización periódica
-            const intervalId = setInterval(updateAllSensors, UPDATE_INTERVAL_MS);
+            const intervalId = setInterval(updateAllTickets, UPDATE_INTERVAL_MS);
 
-            // Limpiar intervalo si la página se oculta (opcional, ahorra recursos)
-            document.addEventListener('visibilitychange', () => {
-                // Podríamos pausar, pero para simulación en vivo lo dejamos correr
-                // Si se quiere pausar al minimizar, descomentar:
-                // if (document.hidden) {
-                //     clearInterval(intervalId);
-                // } else {
-                //     intervalId = setInterval(updateAllSensors, UPDATE_INTERVAL_MS);
-                // }
-            });
-
-            console.log('✅ Dashboard de monitoreo en vivo inicializado.');
-            console.log('   🟢 Verde = tiene datos  |  ⚫ Gris = vacío/sin señal');
-            console.log(`   🔄 Actualizando cada ${UPDATE_INTERVAL_MS / 1000}s | Probabilidad de dato: ${(PROBABILITY_HAS_DATA * 100).toFixed(0)}%`);
+            console.log('✅ Panel de 300 boletos activo.');
+            console.log('   🟢 Verde = con dato  |  ⚫ Gris = vacío');
+            console.log(`   🔄 Ciclo automático cada ${UPDATE_INTERVAL_MS / 1000}s`);
         })();
     </script>
 </body>
