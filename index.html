@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* ===== ESTILOS (iguales, solo se quitó el segundo stat-item) ===== */
+        /* ===== ESTILOS ===== */
         :root {
             --bg: #0b0f14;
             --panel-bg: #131920;
@@ -24,6 +24,8 @@
             --card-radius: 8px;
             --modal-bg: #1c2128;
             --modal-overlay: rgba(0, 0, 0, 0.7);
+            --yellow-bg: #3d2a1a;
+            --yellow-border: #a77a3a;
         }
 
         * {
@@ -163,6 +165,16 @@
             border-color: #9a7a3a;
             color: #fff;
         }
+        .btn.admin {
+            background: #1a2a3d;
+            border-color: #2a5a7a;
+            color: #a0c0f0;
+        }
+        .btn.admin:hover {
+            background: #2a3a5d;
+            border-color: #4a7a9a;
+            color: #fff;
+        }
         .separator {
             width: 1px;
             height: 24px;
@@ -245,6 +257,10 @@
             background: var(--gray-bg);
             border-color: var(--gray-border);
         }
+        .legend-dot.yellow {
+            background: var(--yellow-bg);
+            border-color: var(--yellow-border);
+        }
 
         .ticket-grid {
             display: grid;
@@ -273,7 +289,7 @@
             padding: 8px 4px;
             text-align: center;
             cursor: pointer;
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.2s;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
             position: relative;
             overflow: hidden;
             min-height: 50px;
@@ -292,16 +308,18 @@
             border-color: var(--green-border);
             color: #fff;
             box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
-            animation: subtleGlow 3s ease-in-out infinite;
         }
-        @keyframes subtleGlow {
-            0%,
-            100% {
-                box-shadow: 0 2px 10px rgba(63, 185, 80, 0.3);
-            }
-            50% {
-                box-shadow: 0 4px 20px rgba(63, 185, 80, 0.55);
-            }
+        .ticket-cell.pending {
+            background: var(--yellow-bg);
+            border-color: var(--yellow-border);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(167, 122, 58, 0.3);
+        }
+        .ticket-cell.pagado {
+            background: var(--green-bg);
+            border-color: #4dda5a;
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(63, 185, 80, 0.5);
         }
         .ticket-cell:hover {
             transform: translateY(-2px);
@@ -310,6 +328,10 @@
         .ticket-cell.sold:hover {
             border-color: #4dda5a;
             box-shadow: 0 6px 24px rgba(63, 185, 80, 0.6);
+        }
+        .ticket-cell.pending:hover {
+            border-color: #c99a4a;
+            box-shadow: 0 6px 24px rgba(167, 122, 58, 0.6);
         }
         .ticket-cell.available:hover {
             border-color: #5a5a62;
@@ -328,6 +350,12 @@
             letter-spacing: 0.2px;
         }
         .ticket-cell.sold .ticket-status {
+            color: #b8e6c0;
+        }
+        .ticket-cell.pending .ticket-status {
+            color: #f0d0a0;
+        }
+        .ticket-cell.pagado .ticket-status {
             color: #b8e6c0;
         }
         .ticket-cell.available .ticket-status {
@@ -402,32 +430,37 @@
             -webkit-appearance: none;
             margin: 0;
         }
-        .price-options {
+        .modal .info-line {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            padding: 4px 0;
         }
-        .price-option {
-            flex: 1;
-            text-align: center;
-            background: #1c2129;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .modal .info-line .label {
+            color: #8b949e;
+        }
+        .modal .info-line .value {
             font-weight: 600;
         }
-        .price-option.selected {
-            background: #1a3a2a;
-            border-color: #3fb950;
-            color: #fff;
+        .modal .info-line .value.pending {
+            color: #f0d0a0;
+        }
+        .modal .info-line .value.pagado {
+            color: #3fb950;
+        }
+        .modal .remaining {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 6px 0 12px;
+            text-align: center;
         }
         .modal-actions {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
             flex-wrap: wrap;
+            margin-top: 10px;
         }
         .modal-actions .btn {
             min-width: 80px;
@@ -435,6 +468,52 @@
         }
         .modal-actions .btn.danger {
             margin-right: auto;
+        }
+
+        /* Modal admin */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .admin-stat {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .admin-stat .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--green-bright);
+        }
+        .admin-stat .label {
+            font-size: 0.75rem;
+            color: #8b949e;
+            display: block;
+            margin-top: 4px;
+        }
+        .admin-debt-list {
+            max-height: 150px;
+            overflow-y: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+        .admin-debt-list .debt-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #1a1f27;
+        }
+        .admin-debt-list .debt-item .num {
+            font-weight: 600;
+        }
+        .admin-debt-list .debt-item .amount {
+            color: #f0d0a0;
         }
 
         [data-tooltip]:hover::after {
@@ -454,6 +533,18 @@
             color: #c9d1d9;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
+
+        .disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .modal .sub {
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-top: -8px;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
@@ -461,8 +552,9 @@
         <div class="header">
             <div class="header-left"><h1>🎟️ Control de Boletos 1-300</h1></div>
             <div class="stats">
-                <!-- Solo mantenemos el contador de vendidos, eliminamos ganancia -->
                 <div class="stat-item"><span class="label">🎯 Vendidos</span><span class="value" id="soldCount">0</span></div>
+                <div class="stat-item"><span class="label">💰 Recaudado</span><span class="value" id="totalPaid">0</span></div>
+                <div class="stat-item"><span class="label">⏳ Saldo pendiente</span><span class="value" id="totalPending">0</span></div>
             </div>
             <div class="timestamp" id="liveTimestamp">--:--:--</div>
         </div>
@@ -474,6 +566,7 @@
             <button class="btn" id="btnSellRandom">🎲 Vender 200 aleatorios</button>
             <button class="btn danger" id="btnResetAll">🧹 Reiniciar todo</button>
             <button class="btn" id="btnRefresh">🔄 Refrescar</button>
+            <button class="btn admin" id="btnAdmin">📊 Admin</button>
 
             <div class="status-container" id="statusContainer" title="Estado de la conexión con Supabase">
                 <span class="status-dot connecting" id="dbStatus"></span>
@@ -481,7 +574,8 @@
             </div>
 
             <div class="legend">
-                <span><span class="legend-dot green"></span> Vendido</span>
+                <span><span class="legend-dot green"></span> Pagado</span>
+                <span><span class="legend-dot yellow"></span> Pendiente</span>
                 <span><span class="legend-dot gray"></span> Disponible</span>
             </div>
         </div>
@@ -489,28 +583,53 @@
         <div class="ticket-grid" id="ticketGrid"></div>
     </div>
 
-    <!-- ===== MODAL ÚNICO (venta + edición) ===== -->
+    <!-- ===== MODAL DE VENTA / ABONO ===== -->
     <div class="modal-overlay" id="sellModal">
         <div class="modal">
             <h3 id="modalTitle">🎫 Vender Boleto <span id="modalTicketNumber">#0</span></h3>
-            <label for="sellerSelect">👤 Vendedor</label>
-            <select id="sellerSelect">
-                <option value="">-- Selecciona un vendedor --</option>
-                <option value="Carmen">Carmen</option>
-                <option value="Jesús">Jesús</option>
-                <option value="Leslie">Leslie</option>
-                <option value="Mamá">Mamá</option>
-                <option value="Araceli">Araceli</option>   <!-- NUEVO VENDEDOR -->
-            </select>
-            <label>💵 Precio de venta</label>
-            <div class="price-options" id="priceOptions">
-                <div class="price-option selected" data-price="200">$200</div>
-                <div class="price-option" data-price="250">$250</div>
+            <div id="modalBody">
+                <label for="sellerSelect">👤 Vendedor</label>
+                <select id="sellerSelect">
+                    <option value="">-- Selecciona un vendedor --</option>
+                    <option value="Carmen">Carmen</option>
+                    <option value="Jesús">Jesús</option>
+                    <option value="Leslie">Leslie</option>
+                    <option value="Mamá">Mamá</option>
+                    <option value="Araceli">Araceli</option>
+                </select>
+
+                <div class="info-line"><span class="label">💵 Precio total</span><span class="value" id="displayPrice">$0</span></div>
+                <div class="info-line" id="paidInfo" style="display:none;"><span class="label">💰 Pagado</span><span class="value" id="displayPaid">$0</span></div>
+                <div class="info-line" id="remainingInfo" style="display:none;"><span class="label">⏳ Saldo restante</span><span class="value pending" id="displayRemaining">$0</span></div>
+
+                <label for="abonoInput">💵 Monto del abono (ahora)</label>
+                <input type="number" id="abonoInput" placeholder="Ej. 50" min="0" step="1" />
+                <div class="sub" id="abonoHelp">Ingresa el monto que se paga en este momento. Si es menor al total, quedará un saldo pendiente.</div>
+
+                <div class="modal-actions">
+                    <button class="btn danger" id="btnAnular" style="display:none;">🗑️ Anular venta</button>
+                    <button class="btn" id="cancelSell">Cancelar</button>
+                    <button class="btn accent" id="confirmSell">✅ Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL DE ADMIN ===== -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal" style="max-width:500px;">
+            <h3>📊 Panel de Administración</h3>
+            <div class="admin-stats">
+                <div class="admin-stat"><span class="number" id="adminSold">0</span><span class="label">Boletos vendidos</span></div>
+                <div class="admin-stat"><span class="number" id="adminPaid">$0</span><span class="label">Total recaudado</span></div>
+                <div class="admin-stat"><span class="number" id="adminPending">$0</span><span class="label">Saldo pendiente total</span></div>
+                <div class="admin-stat"><span class="number" id="adminPagados">0</span><span class="label">Boletos pagados completamente</span></div>
+            </div>
+            <div id="adminDebtList" class="admin-debt-list">
+                <div style="color:#8b949e; text-align:center; padding:10px;">No hay boletos con saldo pendiente.</div>
             </div>
             <div class="modal-actions">
-                <button class="btn danger" id="btnAnular" style="display:none;">🗑️ Anular venta</button>
-                <button class="btn" id="cancelSell">Cancelar</button>
-                <button class="btn accent" id="confirmSell">✅ Confirmar venta</button>
+                <button class="btn" id="closeAdmin">Cerrar</button>
             </div>
         </div>
     </div>
@@ -525,31 +644,54 @@
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             const TOTAL = 300;
-            let tickets = new Array(TOTAL + 1).fill(null).map(() => ({ sold: false, seller: '', price: 0 }));
+            // Estructura: { sold, seller, price, paid }
+            let tickets = new Array(TOTAL + 1).fill(null).map((_, i) => ({
+                sold: false,
+                seller: '',
+                price: i, // siempre igual al número
+                paid: 0
+            }));
 
-            // Estado del modal
-            let currentModalTicket = null;
-            let currentModalBlock = null;
-            let selectedPrice = 200;
-            let editingMode = false;
+            let currentModalTicket = null; // número individual
+            let currentModalBlock = null; // array de números (para venta masiva)
+            let editingMode = false; // true cuando se está abonando a un boleto ya vendido
+            let blockMode = false; // true cuando se vende un bloque
 
             const gridEl = document.getElementById('ticketGrid');
             const soldCountEl = document.getElementById('soldCount');
+            const totalPaidEl = document.getElementById('totalPaid');
+            const totalPendingEl = document.getElementById('totalPending');
             const liveTimestampEl = document.getElementById('liveTimestamp');
             const cellElements = {};
 
-            // Elementos del indicador de conexión
             const statusDot = document.getElementById('dbStatus');
             const statusText = document.getElementById('statusText');
 
+            // Modal venta
             const modalOverlay = document.getElementById('sellModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalTicketNumber = document.getElementById('modalTicketNumber');
             const sellerSelect = document.getElementById('sellerSelect');
-            const priceOptionsContainer = document.getElementById('priceOptions');
+            const abonoInput = document.getElementById('abonoInput');
+            const displayPrice = document.getElementById('displayPrice');
+            const displayPaid = document.getElementById('displayPaid');
+            const displayRemaining = document.getElementById('displayRemaining');
+            const paidInfo = document.getElementById('paidInfo');
+            const remainingInfo = document.getElementById('remainingInfo');
+            const abonoHelp = document.getElementById('abonoHelp');
             const cancelSellBtn = document.getElementById('cancelSell');
             const confirmSellBtn = document.getElementById('confirmSell');
             const btnAnular = document.getElementById('btnAnular');
+            const modalBody = document.getElementById('modalBody');
+
+            // Modal admin
+            const adminModal = document.getElementById('adminModal');
+            const adminSold = document.getElementById('adminSold');
+            const adminPaid = document.getElementById('adminPaid');
+            const adminPending = document.getElementById('adminPending');
+            const adminPagados = document.getElementById('adminPagados');
+            const adminDebtList = document.getElementById('adminDebtList');
+            const closeAdminBtn = document.getElementById('closeAdmin');
 
             // ══════════════════════════════════════
             // ESTADO DE CONEXIÓN
@@ -573,7 +715,7 @@
             }
 
             // ══════════════════════════════════════
-            // REFRESCO PERIÓDICO (POLLING)
+            // REFRESCO PERIÓDICO
             // ══════════════════════════════════════
             let pollingInterval = null;
 
@@ -592,7 +734,8 @@
                             tickets[row.id] = {
                                 sold: row.sold,
                                 seller: row.seller || '',
-                                price: row.price || 0
+                                price: row.id, // siempre el número
+                                paid: row.paid || 0
                             };
                         }
                         refrescarTodasLasCeldas();
@@ -636,7 +779,8 @@
                             tickets[row.id] = {
                                 sold: row.sold,
                                 seller: row.seller || '',
-                                price: row.price || 0
+                                price: row.id,
+                                paid: row.paid || 0
                             };
                         }
                     }
@@ -660,7 +804,8 @@
                                 tickets[id] = {
                                     sold: payload.new.sold,
                                     seller: payload.new.seller || '',
-                                    price: payload.new.price || 0
+                                    price: id,
+                                    paid: payload.new.paid || 0
                                 };
                                 actualizarCelda(id);
                                 actualizarTotales();
@@ -701,13 +846,19 @@
             function actualizarCelda(num) {
                 const { container, statusEl } = cellElements[num];
                 const t = tickets[num];
+                // Resetear clases
+                container.classList.remove('sold', 'pending', 'pagado', 'available');
                 if (t.sold) {
-                    container.classList.add('sold');
-                    container.classList.remove('available');
-                    statusEl.textContent = `$${t.price}`;
-                    container.setAttribute('data-tooltip', `${t.seller} — $${t.price}`);
+                    if (t.paid >= t.price) {
+                        container.classList.add('pagado');
+                        statusEl.textContent = '✅ Pagado';
+                    } else {
+                        container.classList.add('pending');
+                        const resto = t.price - t.paid;
+                        statusEl.textContent = `⏳ $${resto}`;
+                    }
+                    container.setAttribute('data-tooltip', `${t.seller} — Pagado $${t.paid} de $${t.price}`);
                 } else {
-                    container.classList.remove('sold');
                     container.classList.add('available');
                     statusEl.textContent = 'Disp.';
                     container.removeAttribute('data-tooltip');
@@ -718,23 +869,32 @@
                 for (let num = 1; num <= TOTAL; num++) actualizarCelda(num);
             }
 
-            // Solo actualiza vendidos (eliminamos ganancia)
             function actualizarTotales() {
-                let vendidos = 0;
+                let vendidos = 0,
+                    totalPaid = 0,
+                    totalPending = 0;
                 for (let i = 1; i <= TOTAL; i++) {
-                    if (tickets[i].sold) vendidos++;
+                    const t = tickets[i];
+                    if (t.sold) {
+                        vendidos++;
+                        totalPaid += t.paid;
+                        if (t.paid < t.price) totalPending += (t.price - t.paid);
+                    }
                 }
                 soldCountEl.textContent = vendidos;
+                totalPaidEl.textContent = `$${totalPaid}`;
+                totalPendingEl.textContent = `$${totalPending}`;
             }
 
             // ══════════════════════════════════════
-            // MANEJO DEL MODAL (VENTA Y EDICIÓN)
+            // MANEJO DEL MODAL (VENTA / ABONO)
             // ══════════════════════════════════════
             function abrirModalVenta(ticketNumbers, isBlock = false) {
+                blockMode = isBlock;
                 editingMode = false;
                 btnAnular.style.display = 'none';
                 confirmSellBtn.textContent = '✅ Confirmar venta';
-                modalTitle.innerHTML = `🎫 Vender Boleto <span id="modalTicketNumber">#${Array.isArray(ticketNumbers) ? ticketNumbers.length + ' boletos' : ticketNumbers}</span>`;
+                abonoHelp.textContent = 'Ingresa el monto que se paga en este momento. Si es menor al total, quedará un saldo pendiente.';
 
                 if (Array.isArray(ticketNumbers)) {
                     if (ticketNumbers.length === 0) {
@@ -744,46 +904,71 @@
                     currentModalTicket = null;
                     currentModalBlock = ticketNumbers;
                     modalTicketNumber.textContent = `${ticketNumbers.length} boletos`;
+                    modalTitle.innerHTML = `🎫 Vender múltiples boletos <span id="modalTicketNumber">${ticketNumbers.length} boletos</span>`;
+                    // Para bloques, solo pedimos vendedor y un abono global (se aplica a cada boleto)
+                    // Mostramos precio total promedio? mejor no, solo pedimos vendedor y abono por boleto.
+                    // Simplificamos: pedimos vendedor y un abono que se aplicará a cada boleto.
+                    displayPrice.textContent = `$${ticketNumbers.reduce((s, n) => s + n, 0)} (total)`;
+                    paidInfo.style.display = 'none';
+                    remainingInfo.style.display = 'none';
+                    abonoInput.placeholder = 'Abono por boleto (ej. 50)';
+                    abonoInput.value = '';
+                    abonoHelp.textContent = 'Este monto se aplicará a CADA boleto seleccionado.';
                 } else {
                     currentModalTicket = ticketNumbers;
                     currentModalBlock = null;
                     modalTicketNumber.textContent = `#${ticketNumbers}`;
+                    modalTitle.innerHTML = `🎫 Vender Boleto <span id="modalTicketNumber">#${ticketNumbers}</span>`;
+                    const t = tickets[ticketNumbers];
+                    displayPrice.textContent = `$${t.price}`;
+                    paidInfo.style.display = 'none';
+                    remainingInfo.style.display = 'none';
+                    abonoInput.placeholder = 'Monto del abono';
+                    abonoInput.value = '';
+                    abonoHelp.textContent = 'Ingresa el monto que se paga en este momento. Si es menor al total, quedará un saldo pendiente.';
                 }
 
                 sellerSelect.value = '';
-                selectedPrice = 200;
-                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
-                document.querySelector('.price-option[data-price="200"]').classList.add('selected');
-
+                sellerSelect.disabled = false;
                 modalOverlay.classList.add('active');
                 sellerSelect.focus();
             }
 
-            function abrirModalEdicion(num) {
+            function abrirModalAbono(num) {
                 const t = tickets[num];
                 if (!t.sold) {
+                    // Si no está vendido, abrir como venta normal
                     abrirModalVenta(num, false);
                     return;
                 }
 
                 editingMode = true;
+                blockMode = false;
                 currentModalTicket = num;
                 currentModalBlock = null;
                 modalTicketNumber.textContent = `#${num}`;
-                modalTitle.innerHTML = `✏️ Editar Boleto <span id="modalTicketNumber">#${num}</span>`;
-
-                sellerSelect.value = t.seller || '';
-                const price = t.price || 200;
-                document.querySelectorAll('.price-option').forEach(el => {
-                    el.classList.toggle('selected', parseInt(el.dataset.price) === price);
-                });
-                selectedPrice = price;
-
+                modalTitle.innerHTML = `💰 Abonar Boleto <span id="modalTicketNumber">#${num}</span>`;
+                confirmSellBtn.textContent = '💾 Abonar';
                 btnAnular.style.display = 'inline-flex';
-                confirmSellBtn.textContent = '💾 Actualizar venta';
+                abonoHelp.textContent = 'Ingresa el monto adicional que deseas pagar ahora.';
+
+                displayPrice.textContent = `$${t.price}`;
+                displayPaid.textContent = `$${t.paid}`;
+                const resto = t.price - t.paid;
+                displayRemaining.textContent = `$${resto}`;
+                paidInfo.style.display = 'flex';
+                remainingInfo.style.display = 'flex';
+
+                abonoInput.placeholder = 'Monto adicional';
+                abonoInput.value = '';
+                abonoInput.min = 0;
+                abonoInput.max = resto;
+
+                sellerSelect.value = t.seller;
+                sellerSelect.disabled = true; // no se puede cambiar vendedor
 
                 modalOverlay.classList.add('active');
-                sellerSelect.focus();
+                abonoInput.focus();
             }
 
             function cerrarModal() {
@@ -791,11 +976,15 @@
                 currentModalTicket = null;
                 currentModalBlock = null;
                 editingMode = false;
+                blockMode = false;
                 btnAnular.style.display = 'none';
+                sellerSelect.disabled = false;
+                paidInfo.style.display = 'none';
+                remainingInfo.style.display = 'none';
             }
 
             // ══════════════════════════════════════
-            // ACCIONES: VENTA, ACTUALIZACIÓN, ANULACIÓN
+            // ACCIONES: VENTA, ABONO, ANULACIÓN
             // ══════════════════════════════════════
             async function confirmarVenta() {
                 const seller = sellerSelect.value;
@@ -803,28 +992,42 @@
                     alert('Selecciona un vendedor.');
                     return;
                 }
-                const price = selectedPrice;
+
+                const abono = parseInt(abonoInput.value, 10);
+                if (isNaN(abono) || abono < 0) {
+                    alert('Ingresa un monto de abono válido (mayor o igual a 0).');
+                    return;
+                }
 
                 let ids = [];
                 if (currentModalTicket !== null) {
                     ids = [currentModalTicket];
                 } else if (currentModalBlock && currentModalBlock.length > 0) {
-                    ids = currentModalBlock.filter(num => !tickets[num].sold);
-                    if (ids.length === 0) {
-                        alert('Todos los boletos seleccionados ya están vendidos.');
-                        cerrarModal();
-                        return;
-                    }
+                    ids = currentModalBlock;
                 } else {
                     return;
                 }
 
-                const updates = ids.map(id => ({
-                    id: id,
-                    sold: true,
-                    seller: seller,
-                    price: price
-                }));
+                // Para cada boleto, calcular el paid final
+                const updates = ids.map(id => {
+                    const t = tickets[id];
+                    let paid = abono;
+                    // Si es un solo boleto y ya tiene paid (modo edición), sumamos
+                    if (editingMode && currentModalTicket !== null && id === currentModalTicket) {
+                        paid = t.paid + abono;
+                        if (paid > t.price) paid = t.price;
+                    }
+                    // Si es bloque, el abono se aplica a cada uno (puede ser 0)
+                    // Si el abono es mayor que el precio, lo ajustamos
+                    if (paid > id) paid = id;
+                    return {
+                        id: id,
+                        sold: true,
+                        seller: seller,
+                        price: id,
+                        paid: paid
+                    };
+                });
 
                 try {
                     const { error } = await supabase
@@ -834,44 +1037,20 @@
                     if (error) throw error;
                     cerrarModal();
                 } catch (err) {
-                    console.error('Error al vender/actualizar boletos:', err);
-                    alert(`❌ Error al guardar la venta:\n${err.message || 'Error desconocido'}`);
-                }
-            }
-
-            async function actualizarVenta() {
-                if (!editingMode || currentModalTicket === null) return;
-
-                const seller = sellerSelect.value;
-                if (!seller) {
-                    alert('Selecciona un vendedor.');
-                    return;
-                }
-                const price = selectedPrice;
-                const id = currentModalTicket;
-
-                try {
-                    const { error } = await supabase
-                        .from('tickets')
-                        .upsert({ id, sold: true, seller, price }, { onConflict: 'id' });
-
-                    if (error) throw error;
-                    cerrarModal();
-                } catch (err) {
-                    console.error('Error al actualizar:', err);
-                    alert(`❌ Error al actualizar:\n${err.message}`);
+                    console.error('Error al guardar la venta/abono:', err);
+                    alert(`❌ Error al guardar:\n${err.message || 'Error desconocido'}`);
                 }
             }
 
             async function anularVenta() {
-                if (!editingMode || currentModalTicket === null) return;
+                if (currentModalTicket === null) return;
                 const id = currentModalTicket;
                 if (!confirm(`¿Seguro que quieres anular la venta del boleto #${id}?`)) return;
 
                 try {
                     const { error } = await supabase
                         .from('tickets')
-                        .upsert({ id, sold: false, seller: '', price: 0 }, { onConflict: 'id' });
+                        .upsert({ id, sold: false, seller: '', price: id, paid: 0 }, { onConflict: 'id' });
 
                     if (error) throw error;
                     cerrarModal();
@@ -882,35 +1061,75 @@
             }
 
             // ══════════════════════════════════════
+            // ADMIN
+            // ══════════════════════════════════════
+            function actualizarAdmin() {
+                let vendidos = 0,
+                    totalPaid = 0,
+                    totalPending = 0,
+                    pagados = 0;
+                const deudas = [];
+                for (let i = 1; i <= TOTAL; i++) {
+                    const t = tickets[i];
+                    if (t.sold) {
+                        vendidos++;
+                        totalPaid += t.paid;
+                        if (t.paid >= t.price) {
+                            pagados++;
+                        } else {
+                            totalPending += (t.price - t.paid);
+                            deudas.push({ num: i, pending: t.price - t.paid });
+                        }
+                    }
+                }
+                adminSold.textContent = vendidos;
+                adminPaid.textContent = `$${totalPaid}`;
+                adminPending.textContent = `$${totalPending}`;
+                adminPagados.textContent = pagados;
+
+                if (deudas.length === 0) {
+                    adminDebtList.innerHTML = '<div style="color:#8b949e; text-align:center; padding:10px;">No hay boletos con saldo pendiente.</div>';
+                } else {
+                    adminDebtList.innerHTML = deudas.map(d =>
+                        `<div class="debt-item"><span class="num">#${d.num}</span><span class="amount">$${d.pending} pendiente</span></div>`
+                    ).join('');
+                }
+            }
+
+            function abrirAdmin() {
+                actualizarAdmin();
+                adminModal.classList.add('active');
+            }
+
+            function cerrarAdmin() {
+                adminModal.classList.remove('active');
+            }
+
+            // ══════════════════════════════════════
             // EVENTOS DE BOTONES Y MODAL
             // ══════════════════════════════════════
-            priceOptionsContainer.addEventListener('click', (e) => {
-                const option = e.target.closest('.price-option');
-                if (!option) return;
-                document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedPrice = parseInt(option.dataset.price, 10);
-            });
-
             cancelSellBtn.addEventListener('click', cerrarModal);
-            confirmSellBtn.addEventListener('click', () => {
-                if (editingMode) {
-                    actualizarVenta();
-                } else {
-                    confirmarVenta();
-                }
-            });
+            confirmSellBtn.addEventListener('click', confirmarVenta);
             btnAnular.addEventListener('click', anularVenta);
 
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
             modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) cerrarModal(); });
+
+            closeAdminBtn.addEventListener('click', cerrarAdmin);
+            adminModal.addEventListener('click', (e) => { if (e.target === adminModal) cerrarAdmin(); });
 
             // ══════════════════════════════════════
             // MANEJO DE CLIC EN BOLETO
             // ══════════════════════════════════════
             function manejarClickBoleto(num) {
                 if (tickets[num].sold) {
-                    abrirModalEdicion(num);
+                    // Si está vendido, abrir modal de abono (si tiene saldo) o solo mostrar info?
+                    if (tickets[num].paid < tickets[num].price) {
+                        abrirModalAbono(num);
+                    } else {
+                        // Pagado completamente, mostrar mensaje o permitir ver detalles
+                        alert(`El boleto #${num} ya está pagado completamente.`);
+                    }
                 } else {
                     abrirModalVenta(num, false);
                 }
@@ -953,7 +1172,7 @@
 
                 const updates = [];
                 for (let i = 1; i <= TOTAL; i++) {
-                    updates.push({ id: i, sold: false, seller: '', price: 0 });
+                    updates.push({ id: i, sold: false, seller: '', price: i, paid: 0 });
                 }
 
                 try {
@@ -977,6 +1196,7 @@
             document.getElementById('btnSellRandom').addEventListener('click', () => venderAleatoriosN(200));
             document.getElementById('btnResetAll').addEventListener('click', reiniciarTodo);
             document.getElementById('btnRefresh').addEventListener('click', refrescarDatos);
+            document.getElementById('btnAdmin').addEventListener('click', abrirAdmin);
 
             // ══════════════════════════════════════
             // ARRANQUE
